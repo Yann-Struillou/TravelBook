@@ -1,0 +1,26 @@
+﻿@page "/counter"
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount at @lastTime</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+    private string lastTime = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentCount = 0;
+        lastTime = DateTime.Now.ToLongTimeString();
+    }
+
+    private void IncrementCount()
+    {
+        currentCount++;
+        StateHasChanged();
+    }
+}

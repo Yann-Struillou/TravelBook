@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TravelBook.Client\TravelBook.Client.csproj" />
+	  <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
+	  <PackageReference Include="Azure.Identity" Version="1.17.1" />
+	  <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.8.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
+	  <PackageReference Include="Microsoft.Graph" Version="5.98.0" />
+	  <PackageReference Include="Microsoft.Identity.Web" Version="4.1.1" />
+	  <PackageReference Include="Microsoft.Identity.Web.GraphServiceClient" Version="4.1.1" />
+	  <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.1.1" />
+  </ItemGroup>
+
+</Project>
