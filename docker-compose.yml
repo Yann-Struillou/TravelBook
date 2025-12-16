@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  travelbook_app:
+  web:
     image: travelbook_app:latest
     ports:
       - "8080:8080"
@@ -21,4 +21,3 @@ services:
 secrets:
   travelbook_pfx_password:
     external: true
-    
