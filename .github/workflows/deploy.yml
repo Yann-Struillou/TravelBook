@@ -1,0 +1,26 @@
+name: Deploy TravelBook
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
+
+      - name: Ensure Docker secret exists
+        run: |
+          if ! docker secret inspect travelbook_pfx_password >/dev/null 2>&1; then
+            echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | \
+            docker secret create travelbook_pfx_password -
+          fi
+
+      - name: Deploy stack
+        run: docker stack deploy -c docker-compose.yml travelbook_app
