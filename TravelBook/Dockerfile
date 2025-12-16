@@ -1,5 +1,5 @@
 # ============================================
-# Stage 1 : Build
+# Stage 1 : Build & Publish
 # ============================================
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /src
@@ -16,22 +16,19 @@ WORKDIR /src/TravelBook
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 # ============================================
-# Stage 2 : Runtime (IMAGE FINALE)
+# Stage 2 : Runtime (image finale)
 # ============================================
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 WORKDIR /app
 
-# Ajouter un user non admin
-RUN addgroup -S appusergroup && adduser -S appuser -G appusergroup
-    
-# Copier les fichiers publiés
-COPY --from=publish /app/publish .
-
-# Excécuter en tant que appuser (non admin, root)
+# Créer un utilisateur non-root
+RUN useradd -m appuser
 USER appuser
 
-# Exposer les ports
+# Copier l'application publiée
+COPY --from=build /app/publish .
+
+# Port HTTPS
 EXPOSE 8080
 
-# Point d'entrée
 ENTRYPOINT ["dotnet", "TravelBook.dll"]
