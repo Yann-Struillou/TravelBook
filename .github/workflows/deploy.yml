@@ -20,9 +20,11 @@ jobs:
         run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
 
       - name: Ensure Docker secret exists
+        env:
+           TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
         run: |
           if ! docker secret inspect travelbook_pfx_password >/dev/null 2>&1; then
-            echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | \
+            echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
             docker secret create travelbook_pfx_password -
           fi
 
