@@ -40,7 +40,7 @@ USER appuser
 ENV ASPNETCORE_URLS=https://+:8080;http://+:8081
 ENV ASPNETCORE_HTTPS_PORTS=8080
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/app/cert.pfx
-ENV ASPNETCORE_Kestrel__Certificates__Default__Password=VotreMotDePasseCert
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=/run/secrets/travelbook_pfx_password
 
 # Exposer les ports
 EXPOSE 8080 8081
