@@ -1,7 +1,7 @@
 # ============================================
 # Stage 1 : Build
 # ============================================
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /src
 
 # Copier le fichier projet et restaurer les dépendances
@@ -21,14 +21,21 @@ RUN dotnet publish "TravelBook.csproj" -c Release -o /app/publish /p:UseAppHost=
 # ============================================
 # Stage 3 : Runtime (IMAGE FINALE LÉGÈRE)
 # ============================================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS final
 WORKDIR /app
 
 # Installer les certificats SSL pour HTTPS
 RUN apk add --no-cache icu-libs
 
+# Ajouter un user non admin
+RUN addgroup -S appusergroup \
+    && adduser -S appuser -G appusergroup
+    
 # Copier les fichiers publiés
 COPY --from=publish /app/publish .
+
+# Excécuter en tant que appuser (non admin, root)
+USER appuser
 
 # Configurer les variables d'environnement
 ENV ASPNETCORE_URLS=https://+:8080;http://+:8081
