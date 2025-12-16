@@ -2,10 +2,7 @@ version: "3.9"
 
 services:
   travelbook_app:
-    build:
-      context: ./TravelBook
-      dockerfile: Dockerfile
-    container_name: travelbook_app
+    image: travelbook_app:latest
     ports:
       - "8080:8080"
     volumes:
@@ -16,8 +13,12 @@ services:
       ASPNETCORE_URLS: https://+:8080
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
       ASPNETCORE_Kestrel__Certificates__Default__PasswordFile: /run/secrets/travelbook_pfx_password
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
 
 secrets:
   travelbook_pfx_password:
     external: true
+    
