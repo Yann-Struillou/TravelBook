@@ -25,10 +25,9 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS final
 WORKDIR /app
 
 # Installer les certificats SSL pour HTTPS
-RUN apk add --no-cache icu-libs
-
 # Ajouter un user non admin
-RUN addgroup -S appusergroup \
+RUN apk add --no-cache icu-libs \
+    && addgroup -S appusergroup \
     && adduser -S appuser -G appusergroup
     
 # Copier les fichiers publiés
