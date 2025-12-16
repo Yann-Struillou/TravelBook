@@ -1,11 +1,11 @@
 version: "3.9"
 
 services:
-  travelbook:
+  travelbook_app:
     build:
       context: ./TravelBook
       dockerfile: Dockerfile
-    container_name: travelbook
+    container_name: travelbook_app
     ports:
       - "8080:8080"
     volumes:
