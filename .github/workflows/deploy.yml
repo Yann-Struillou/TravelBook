@@ -27,10 +27,10 @@ jobs:
           fi
 
       - name: Deploy stack
-        run: docker stack deploy -c docker-compose.yml travelbook_app
+        run: docker stack deploy -c docker-compose.yml travelbook
 
       - name: Force service update
-        run: docker service update --force travelbook_app_travelbook_app
+        run: docker service update --force travelbook_web
 
       - name: Cleanup unused images
         run: docker image prune -f
