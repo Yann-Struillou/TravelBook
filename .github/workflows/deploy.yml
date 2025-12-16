@@ -7,10 +7,14 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Ensure Docker Swarm is initialized
+        run: |
+          docker info | grep -q "Swarm: active" || docker swarm init
 
       - name: Build Docker image
         run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
@@ -24,3 +28,9 @@ jobs:
 
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook_app
+
+      - name: Force service update
+        run: docker service update --force travelbook_app_travelbook_app
+
+      - name: Cleanup unused images
+        run: docker image prune -f
