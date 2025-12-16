@@ -4,31 +4,25 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /src
 
-# Copier le fichier projet et restaurer les dépendances
-COPY ["TravelBook.csproj", "./"]
-RUN dotnet restore "TravelBook.csproj"
+# Copier le projet et restaurer
+COPY TravelBook/TravelBook.csproj TravelBook/
+RUN dotnet restore TravelBook/TravelBook.csproj
 
-# Copier tout le code source et builder
-COPY . .
-RUN dotnet build "TravelBook.csproj" -c Release -o /app/build
+# Copier le reste du code
+COPY TravelBook/ TravelBook/
 
-# ============================================
-# Stage 2 : Publish
-# ============================================
-FROM build AS publish
-RUN dotnet publish "TravelBook.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Publier l'application
+WORKDIR /src/TravelBook
+RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 # ============================================
-# Stage 3 : Runtime (IMAGE FINALE LÉGÈRE)
+# Stage 2 : Runtime (IMAGE FINALE)
 # ============================================
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 WORKDIR /app
 
-# Installer les certificats SSL pour HTTPS
 # Ajouter un user non admin
-RUN apk add --no-cache icu-libs \
-    && addgroup -S appusergroup \
-    && adduser -S appuser -G appusergroup
+RUN addgroup -S appusergroup && adduser -S appuser -G appusergroup
     
 # Copier les fichiers publiés
 COPY --from=publish /app/publish .
@@ -36,14 +30,8 @@ COPY --from=publish /app/publish .
 # Excécuter en tant que appuser (non admin, root)
 USER appuser
 
-# Configurer les variables d'environnement
-ENV ASPNETCORE_URLS=https://+:8080;http://+:8081
-ENV ASPNETCORE_HTTPS_PORTS=8080
-ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/app/cert.pfx
-ENV ASPNETCORE_Kestrel__Certificates__Default__Password=/run/secrets/travelbook_pfx_password
-
 # Exposer les ports
-EXPOSE 8080 8081
+EXPOSE 8080
 
 # Point d'entrée
 ENTRYPOINT ["dotnet", "TravelBook.dll"]
