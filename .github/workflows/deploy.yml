@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: travelbook-ubuntu
+    runs-on: travelbook
 
     steps:
       - name: Checkout repository
