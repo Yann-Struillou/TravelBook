@@ -34,7 +34,7 @@ COPY --from=build /app/publish .
 EXPOSE 80
 EXPOSE 443
 
-COPY SetEnvironmentVariables /app/SetEnvironmentVariables
-RUN chmod +x /app/TravelBook/SetEnvironmentVariables
+COPY TravelBook/SetEnvironmentVariables ./SetEnvironmentVariables
+RUN chmod +x ./SetEnvironmentVariables
 
 ENTRYPOINT ["/bin/sh", "-c", "./SetEnvironmentVariables"]
