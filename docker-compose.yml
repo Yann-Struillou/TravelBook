@@ -9,6 +9,10 @@ services:
     secrets:
       - travelbook_pfx_password
     environment:
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+      KEYVAULT_URI: ${KEYVAULT_URI}
       ASPNETCORE_URLS: "https://+443;http://+80"
       ASPNETCORE_HTTPS_PORT: 443
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
