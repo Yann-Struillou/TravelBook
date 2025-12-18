@@ -16,7 +16,7 @@ services:
     deploy:
       replicas: 1
       restart_policy:
-        condition: any
+        condition: none
 
 secrets:
   travelbook_pfx_password:
