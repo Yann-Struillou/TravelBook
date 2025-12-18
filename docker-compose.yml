@@ -8,11 +8,15 @@ services:
       - /data/docker-data/certs:/https:ro
     secrets:
       - travelbook_pfx_password
+      - travelbook_azure_client_id
+      - travelbook_azure_client_secret
+      - travelbook_azure_tenant_id
+      - travelbook_keyvault_uri
     environment:
-      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
-      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
-      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
-      KEYVAULT_URI: ${KEYVAULT_URI}
+      AZURE_CLIENT_ID_FILE: /run/secrets/travelbook_azure_client_id
+      AZURE_CLIENT_SECRET_FILE: /run/secrets/travelbook_azure_client_secret
+      AZURE_TENANT_ID_FILE: /run/secrets/travelbook_azure_tenant_id
+      KEYVAULT_URI_FILE: /run/secrets/travelbook_keyvault_uri
       ASPNETCORE_URLS: "https://+443;http://+80"
       ASPNETCORE_HTTPS_PORT: 443
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
@@ -25,3 +29,12 @@ services:
 secrets:
   travelbook_pfx_password:
     external: true
+  travelbook_azure_client_id:
+    external: true
+  travelbook_azure_client_secret:
+    external: true
+  travelbook_azure_tenant_id:
+    external: true
+  travelbook_keyvault_uri:
+    external: true
+
