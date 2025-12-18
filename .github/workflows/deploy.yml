@@ -35,10 +35,12 @@ jobs:
            AZURE_CLIENT_SECRET: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}  
            KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}  
         run: |
-          echo "AZURE_TENANT_ID=$AZURE_TENANT_ID" >> .env
-          echo "AZURE_CLIENT_ID=$AZURE_CLIENT_ID" >> .env
-          echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET" >> .env
-          echo "KEYVAULT_URI=$KEYVAULT_URI" >> .env
+          cat > .env <<EOF
+           AZURE_TENANT_ID=${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}
+           AZURE_CLIENT_ID=${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}
+           AZURE_CLIENT_SECRET=${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}
+           KEYVAULT_URI=${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}
+           EOF
           
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook
