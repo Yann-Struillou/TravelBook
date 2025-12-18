@@ -10,6 +10,8 @@ RUN dotnet restore TravelBook/TravelBook.csproj
 
 # Copier le reste du code
 COPY TravelBook/ TravelBook/
+COPY TravelBook.Client/ TravelBook.Client/
+COPY TravelBookDto/ TravelBookDto/
 
 # Publier l'application
 WORKDIR /src/TravelBook
