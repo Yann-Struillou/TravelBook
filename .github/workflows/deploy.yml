@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: travelbook
+    runs-on: travelbook  # ton runner self-hosted
 
     steps:
       - name: Checkout repository
@@ -19,29 +19,18 @@ jobs:
       - name: Build Docker image
         run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
 
-      - name: Ensure Docker secret exists
-        env:
-           TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
+      - name: Create Docker secrets
         run: |
-          if ! docker secret inspect travelbook_pfx_password >/dev/null 2>&1; then
-            echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
-            docker secret create travelbook_pfx_password -
-          fi
-          
-      - name: Set environment variables
-        env:
-           AZURE_TENANT_ID: ${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}
-           AZURE_CLIENT_ID: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}  
-           AZURE_CLIENT_SECRET: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}  
-           KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}  
-        run: |
-          sed -i "s|\${AZURE_CLIENT_ID}|${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}|g" docker-compose.yml
-          sed -i "s|\${AZURE_CLIENT_SECRET}|${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}|g" docker-compose.yml
-          sed -i "s|\${AZURE_TENANT_ID}|${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}|g" docker-compose.yml
-          sed -i "s|\${KEYVAULT_URI}|${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}|g" docker-compose.yml
-          
+          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" | docker secret create travelbook_azure_client_id --quiet || echo "Secret already exists"
+          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" | docker secret create travelbook_azure_client_secret --quiet || echo "Secret already exists"
+          echo "${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" | docker secret create travelbook_azure_tenant_id --quiet || echo "Secret already exists"
+          echo "${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" | docker secret create travelbook_keyvault_uri --quiet || echo "Secret already exists"
+          echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | docker secret create travelbook_pfx_password --quiet || echo "Secret already exists"
+
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook
 
-      - name: Cleanup unused images
-        run: docker image prune -f
+      - name: Verify containers
+        run: |
+          docker stack ps travelbook
+          docker ps --filter label=com.docker.stack.namespace=travelbook
