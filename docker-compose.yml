@@ -2,13 +2,15 @@ services:
   web:
     image: travelbook_app:latest
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
     volumes:
       - /data/docker-data/certs:/https:ro
     secrets:
       - travelbook_pfx_password
     environment:
-      ASPNETCORE_URLS: https://+:8080
+      ASPNETCORE_URLS="https://+443;http://+80"
+      ASPNETCORE_HTTPS_PORT=443
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
       ASPNETCORE_Kestrel__Certificates__Default__PasswordFile: /run/secrets/travelbook_pfx_password
     deploy:
