@@ -2,7 +2,7 @@ name: Deploy TravelBook
 
 on:
   push:
-    branches: [ main ]
+    branches: [ self-hosted-test ]
 
 jobs:
   deploy:
@@ -32,7 +32,7 @@ jobs:
         run: docker stack deploy -c docker-compose.yml travelbook
 
       - name: Force service update
-        run: docker service update --force travelbook_web
+        run: docker service update travelbook_web
 
       - name: Cleanup unused images
         run: docker image prune -f
