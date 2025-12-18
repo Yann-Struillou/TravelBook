@@ -31,8 +31,5 @@ jobs:
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook
 
-      - name: Force service update
-        run: docker service update travelbook_web
-
       - name: Cleanup unused images
         run: docker image prune -f
