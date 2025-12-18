@@ -13,6 +13,15 @@ using System.IdentityModel.Tokens.Jwt;
 using TravelBook.Components;
 using TravelBook.Services;
 
+string ReadSecret(string name)
+{
+    var path = $"/run/secrets/{name}";
+    if (!File.Exists(path))
+        throw new Exception($"Docker secret not found: {path}");
+
+    return File.ReadAllText(path).Trim();
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -32,10 +41,16 @@ if (!string.IsNullOrEmpty(useEntraID) &&
     if (!string.IsNullOrEmpty(keyVaultUri))
     {
         // Ajout de KeyVault � la configuration
+        var tenantId = ReadSecret("travelbook_azure_tenant_id");
+        var clientId = ReadSecret("travelbook_azure_client_id");
+        var clientSecret = ReadSecret("travelbook_azure_client_secret");
+        var keyVaultUri = ReadSecret("travelbook_keyvault_uri");
+        
         builder.Configuration.AddAzureKeyVault(
             new Uri(keyVaultUri),
-            new DefaultAzureCredential());
-
+            new ClientSecretCredential(tenantId, clientId, clientSecret)
+        ); 
+        
         var secretClient = new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
 
         // Lecture du secret Azure AD
