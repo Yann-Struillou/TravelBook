@@ -37,33 +37,7 @@ var useEntraID = builder.Configuration["UseEntraID"];
 if (!string.IsNullOrEmpty(useEntraID) &&
     useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
 {
-    var keyVaultUri = ReadSecret("travelbook_keyvault_uri");
-    if (!string.IsNullOrEmpty(keyVaultUri))
-    {
-        // Ajout de KeyVault � la configuration
-        var tenantId = ReadSecret("travelbook_azure_tenant_id");
-        var clientId = ReadSecret("travelbook_azure_client_id");
-        var clientSecret = ReadSecret("travelbook_azure_client_secret");
-                
-        builder.Configuration.AddAzureKeyVault(
-            new Uri(keyVaultUri),
-            new ClientSecretCredential(tenantId, clientId, clientSecret)
-        ); 
-        
-        var secretClient = new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
-
-        // Lecture du secret Azure AD
-        var clientSecretName = builder.Configuration["KeyVault:AzureAdClientSecret"];
-        if (!string.IsNullOrEmpty(clientSecretName))
-        {
-            KeyVaultSecret clientSecret = secretClient.GetSecret(clientSecretName);
-            string clientSecretValue = clientSecret.Value
-                ?? throw new InvalidOperationException("Azure AD client secret not found in KeyVault.");
-
-            // Injecte la valeur r�elle dans la configuration avant l'auth
-            builder.Configuration["AzureAd:ClientSecret"] = clientSecretValue;
-        }
-    }
+    builder.Configuration["AzureAd:ClientSecret"] = ReadSecret("travelbook_azure_client_secret");
 }
 
 var scopesToRequest = new string[] { "profile", "user.read", "user.readwrite.all", "device.read.all" };
