@@ -37,15 +37,14 @@ var useEntraID = builder.Configuration["UseEntraID"];
 if (!string.IsNullOrEmpty(useEntraID) &&
     useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
 {
-    var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+    var keyVaultUri = ReadSecret("travelbook_keyvault_uri");
     if (!string.IsNullOrEmpty(keyVaultUri))
     {
         // Ajout de KeyVault � la configuration
         var tenantId = ReadSecret("travelbook_azure_tenant_id");
         var clientId = ReadSecret("travelbook_azure_client_id");
         var clientSecret = ReadSecret("travelbook_azure_client_secret");
-        var keyVaultUri = ReadSecret("travelbook_keyvault_uri");
-        
+                
         builder.Configuration.AddAzureKeyVault(
             new Uri(keyVaultUri),
             new ClientSecretCredential(tenantId, clientId, clientSecret)
