@@ -35,10 +35,10 @@ jobs:
            AZURE_CLIENT_SECRET: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}  
            KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}  
         run: |
-          echo "AZURE_TENANT_ID=${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" > .env
-          echo "AZURE_CLIENT_ID=${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" >> .env
-          echo "AZURE_CLIENT_SECRET=${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" >> .env
-          echo "KEYVAULT_URI=${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" >> .env
+          sed -i "s|\${AZURE_CLIENT_ID}|${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}|g" docker-compose.yml
+          sed -i "s|\${AZURE_CLIENT_SECRET}|${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}|g" docker-compose.yml
+          sed -i "s|\${AZURE_TENANT_ID}|${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}|g" docker-compose.yml
+          sed -i "s|\${KEYVAULT_URI}|${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}|g" docker-compose.yml
           
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook
