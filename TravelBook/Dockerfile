@@ -30,7 +30,8 @@ USER appuser
 # Copier l'application publiée
 COPY --from=build /app/publish .
 
-# Port HTTPS
+# Ports
 EXPOSE 8080
+EXPOSE 443
 
 ENTRYPOINT ["dotnet", "TravelBook.dll"]
