@@ -34,4 +34,4 @@ COPY --from=build /app/publish .
 EXPOSE 80
 EXPOSE 443
 
-ENTRYPOINT ["/bin/sh", "-c", "chmod 755 ./SetEnvironmentVariables && ./SetEnvironmentVariables && exec dotnet TravelBook.dll"]
+ENTRYPOINT ["/bin/sh", "-c", "chmod 755 /src/TravelBook/SetEnvironmentVariables && /src/TravelBook/SetEnvironmentVariables && exec dotnet TravelBook.dll"]
