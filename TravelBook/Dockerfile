@@ -23,6 +23,9 @@ RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 WORKDIR /app
 
+# Préparer le lanceur de démarrage
+COPY --chmod=755 TravelBook/StartApplication.sh ./StartApplication.sh
+
 # Créer un utilisateur non-root
 RUN useradd -m appuser
 USER appuser
@@ -34,7 +37,4 @@ COPY --from=build /app/publish .
 EXPOSE 80
 EXPOSE 443
 
-COPY TravelBook/SetEnvironmentVariables ./SetEnvironmentVariables
-RUN chmod +x ./SetEnvironmentVariables
-
-ENTRYPOINT ["/bin/sh", "-c", "./SetEnvironmentVariables"]
+ENTRYPOINT ["/bin/sh", "-c", "./StartApplication.sh"]
