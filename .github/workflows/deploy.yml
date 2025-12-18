@@ -27,7 +27,19 @@ jobs:
             echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
             docker secret create travelbook_pfx_password -
           fi
-
+          
+      - name: Set environment variables
+        env:
+           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}  
+           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}  
+           KEYVAULT_URI: ${{ secrets.KEYVAULT_URI }}  
+        run: |
+          export AZURE_TENANT_ID=$AZURE_TENANT_ID
+          export AZURE_CLIENT_ID=$AZURE_CLIENT_ID
+          export AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET
+          export KEYVAULT_URI=$KEYVAULT_URI
+          
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook
 
