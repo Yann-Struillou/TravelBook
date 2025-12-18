@@ -21,11 +21,11 @@ jobs:
 
       - name: Create Docker secrets
         run: |
-          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" | docker secret create travelbook_azure_client_id --quiet || echo "Secret already exists"
-          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" | docker secret create travelbook_azure_client_secret --quiet || echo "Secret already exists"
-          echo "${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" | docker secret create travelbook_azure_tenant_id --quiet || echo "Secret already exists"
-          echo "${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" | docker secret create travelbook_keyvault_uri --quiet || echo "Secret already exists"
-          echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | docker secret create travelbook_pfx_password --quiet || echo "Secret already exists"
+          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" | docker secret create travelbook_azure_client_id || true
+          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" | docker secret create travelbook_azure_client_secret || true
+          echo "${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" | docker secret create travelbook_azure_tenant_id || true
+          echo "${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" | docker secret create travelbook_keyvault_uri || true
+          echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | docker secret create travelbook_pfx_password || true
 
       - name: Deploy stack
         run: docker stack deploy -c docker-compose.yml travelbook
