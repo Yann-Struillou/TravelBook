@@ -33,4 +33,3 @@ secrets:
     external: true
   travelbook_keyvault_uri:
     external: true
-
