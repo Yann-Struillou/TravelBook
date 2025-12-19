@@ -18,8 +18,7 @@ jobs:
           docker info | grep -q "Swarm: active" || docker swarm init
 
       - name: Build Docker image
-        run: |
-          docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
+        run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
 
       # ------------------------------------------------------------
       # Create Docker secrets (idempotent)
@@ -33,13 +32,13 @@ jobs:
           echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | docker secret create travelbook_pfx_password - || true
 
       # ------------------------------------------------------------
-      # Remove existing stack (REQUIRED for secrets update)
+      # Remove existing stack (to apply updated secrets)
       # ------------------------------------------------------------
       - name: Remove existing stack
         run: docker stack rm travelbook || true
 
       - name: Wait for stack removal
-        run: sleep 10
+        run: sleep 15
 
       # ------------------------------------------------------------
       # Deploy stack
@@ -48,7 +47,13 @@ jobs:
         run: docker stack deploy -c docker-compose.yml travelbook
 
       # ------------------------------------------------------------
-      # Diagnostics (optional but very useful)
+      # Wait for services to start
+      # ------------------------------------------------------------
+      - name: Wait for services
+        run: sleep 15
+
+      # ------------------------------------------------------------
+      # Diagnostics
       # ------------------------------------------------------------
       - name: Show services
         run: docker stack services travelbook
