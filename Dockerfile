@@ -11,12 +11,11 @@ EXPOSE 80
 EXPOSE 443
 
 # Copier le projet et restaurer
-COPY TravelBook/TravelBook.csproj ./
-RUN dotnet restore TravelBook.csproj
-
-# Copier le reste du code
-COPY TravelBook/ TravelBook/
+COPY ["TravelBook/TravelBook.csproj", "TravelBook/"]
+COPY ["TravelBook.Client/TravelBook.Client.csproj", "TravelBook.Client/"]
+RUN dotnet restore "TravelBook/TravelBook.csproj"
 COPY ./ ./
+WORKDIR "/src/TravelBook"
 RUN dotnet build "TravelBook.csproj" -c Release -o /app/build
 
 # Publier l'application
@@ -29,13 +28,13 @@ RUN dotnet publish "TravelBook.csproj" -c Release -o /app/publish /p:UseAppHost=
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble as final
 WORKDIR /app
 
-# Copier l'application publiÃ©e
+# Copier l'application publiée
 COPY --from=publish /app/publish .
 
-# Copier le script d'entrÃ©e et rendre exÃ©cutable
+# Copier le script d'entrée et rendre exécutable
 COPY --chmod=755 TravelBook/StartApplication.sh ./StartApplication.sh
 
-# CrÃ©er un utilisateur non-root
+# Créer un utilisateur non-root
 RUN useradd -m appuser
 USER appuser
 
