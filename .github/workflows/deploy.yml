@@ -1,0 +1,38 @@
+name: Deploy TravelBook
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: travelbook
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure Docker Swarm is initialized
+        run: |
+          docker info | grep -q "Swarm: active" || docker swarm init
+
+      - name: Build Docker image
+        run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
+
+      - name: Ensure Docker secret exists
+        env:
+           TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
+        run: |
+          if ! docker secret inspect travelbook_pfx_password >/dev/null 2>&1; then
+            echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
+            docker secret create travelbook_pfx_password -
+          fi
+
+      - name: Deploy stack
+        run: docker stack deploy -c docker-compose.yml travelbook
+
+      - name: Force service update
+        run: docker service update --force travelbook_web
+
+      - name: Cleanup unused images
+        run: docker image prune -f
