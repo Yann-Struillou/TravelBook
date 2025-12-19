@@ -50,7 +50,7 @@ jobs:
            AZURE_KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}
            TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }} 
         run: |
-          docker build -t travelbook_app:latest .
+          docker build -t travelbook_app:latest ./TravelBook
           docker run travelbook_app:latest -p 80:80 -p443:443 --name travelbook
 
       - name: Show running containers
