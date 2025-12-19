@@ -37,7 +37,7 @@ var useEntraID = builder.Configuration["UseEntraID"];
 if (!string.IsNullOrEmpty(useEntraID) &&
     useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
 {
-    builder.Configuration["AzureAd:ClientSecret"] = ReadSecret("travelbook_azure_client_secret");
+    builder.Configuration["AzureAd:ClientSecret"] = "LjV8Q~YCd_jxlDlWuxFerKMgO.yQGUBY_T9kLdd."; //ReadSecret("travelbook_azure_client_secret");
 }
 
 var scopesToRequest = new string[] { "profile", "user.read", "user.readwrite.all", "device.read.all" };
