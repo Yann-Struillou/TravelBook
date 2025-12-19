@@ -50,7 +50,7 @@ jobs:
         run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
           
       - name: Deploy stack
-        run: docker stack deploy --compose-file=docker-compose.yml travelbook_app:latest
+        run: docker stack deploy -c docker-compose.yml travelbook
 
       - name: Show running containers
         run: docker ps
