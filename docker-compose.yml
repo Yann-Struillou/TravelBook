@@ -3,11 +3,11 @@ services:
     build:
       context: .
       dockerfile: TravelBook/Dockerfile
-      secrets:
-        - travelbook_azure_client_id
-        - travelbook_azure_client_secret
-        - travelbook_azure_tenant_id
-        - travelbook_azure_keyvault_uri
+    secrets:
+      - travelbook_azure_client_id
+      - travelbook_azure_client_secret
+      - travelbook_azure_tenant_id
+      - travelbook_azure_keyvault_uri
     ports:
       - "80:80"
       - "443:443"
