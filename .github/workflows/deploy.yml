@@ -1,4 +1,4 @@
-name: Deploy TravelBook (self-hosted)
+name: Deploy TravelBook (non-Swarm)
 
 on:
   push:
@@ -13,60 +13,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Ensure Docker Swarm is initialized
+      # --------------------------------------
+      # Créer le dossier secrets local
+      # --------------------------------------
+      - name: Create secrets folder
+        run: mkdir -p ./secrets
+
+      - name: Add secrets files
         run: |
-          docker info | grep -q "Swarm: active" || docker swarm init
+          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" > ./secrets/travelbook_azure_client_id
+          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" > ./secrets/travelbook_azure_client_secret
+          echo "${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" > ./secrets/travelbook_azure_tenant_id
+          echo "${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" > ./secrets/travelbook_keyvault_uri
+          echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" > ./secrets/travelbook_pfx_password
 
-      - name: Build Docker image
-        run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
-
-      # ------------------------------------------------------------
-      # Create Docker secrets (idempotent)
-      # ------------------------------------------------------------
-      - name: Create Docker secrets
+      # --------------------------------------
+      # Build et lancer le container
+      # --------------------------------------
+      - name: Build and run Docker Compose
         run: |
-          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" | docker secret create travelbook_azure_client_id - || true
-          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" | docker secret create travelbook_azure_client_secret - || true
-          echo "${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" | docker secret create travelbook_azure_tenant_id - || true
-          echo "${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" | docker secret create travelbook_keyvault_uri - || true
-          echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" | docker secret create travelbook_pfx_password - || true
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml up -d
 
-      # ------------------------------------------------------------
-      # Remove existing stack (to apply updated secrets)
-      # ------------------------------------------------------------
-      - name: Remove existing stack
-        run: docker stack rm travelbook || true
-
-      - name: Wait for stack removal
-        run: sleep 30
-
-      # ------------------------------------------------------------
-      # Deploy stack
-      # ------------------------------------------------------------
-      - name: Deploy stack
-        run: docker stack deploy -c docker-compose.yml travelbook
-
-      # ------------------------------------------------------------
-      # Wait for services to start
-      # ------------------------------------------------------------
-      - name: Wait for services
-        run: sleep 30
-             docker service update --secret-add travelbook_azure_tenant_id travelbook_web
-             docker service update --secret-add travelbook_azure_client_id travelbook_web
-             docker service update --secret-add travelbook_azure_client_secret travelbook_web
-             docker service update --secret-add travelbook_keyvault_uri travelbook_web
-             docker service update --secret-add travelbook_pfx_password travelbook_web
-             docker service update --force travelbook_web
-             sleep 15
-
-      # ------------------------------------------------------------
-      # Diagnostics
-      # ------------------------------------------------------------
-      - name: Show services
-        run: docker stack services travelbook
-
-      - name: Show tasks
-        run: docker stack ps travelbook
+      # --------------------------------------
+      # Diagnostics (optionnel)
+      # --------------------------------------
+      - name: Show running containers
+        run: docker ps
 
       - name: Cleanup unused images
         run: docker image prune -f
