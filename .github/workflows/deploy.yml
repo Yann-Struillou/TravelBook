@@ -38,7 +38,7 @@ jobs:
         run: docker stack rm travelbook || true
 
       - name: Wait for stack removal
-        run: sleep 15
+        run: sleep 30
 
       # ------------------------------------------------------------
       # Deploy stack
@@ -50,7 +50,7 @@ jobs:
       # Wait for services to start
       # ------------------------------------------------------------
       - name: Wait for services
-        run: sleep 15
+        run: sleep 30
 
       # ------------------------------------------------------------
       # Diagnostics
