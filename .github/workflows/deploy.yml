@@ -22,7 +22,7 @@ jobs:
            TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
         run: |
           if ! docker secret inspect travelbook_azure_tenant_id >/dev/null 2>&1; then
-            echo "$AZURE_TENANT_ID" | \
+            echo "Tenant ID = $AZURE_TENANT_ID" && echo "$AZURE_TENANT_ID" | \
             docker secret create travelbook_azure_tenant_id -
           fi
           if ! docker secret inspect travelbook_azure_client_id >/dev/null 2>&1; then
@@ -50,8 +50,8 @@ jobs:
            AZURE_KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}
            TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }} 
         run: |
-          docker compose -f docker-compose.yml build
-          docker compose -f docker-compose.yml up -d
+          docker build -t travelbook_app:latest .
+          docker run travelbook_app:latest -p 80:80 -p443:443 --name travelbook
 
       - name: Show running containers
         run: docker ps
