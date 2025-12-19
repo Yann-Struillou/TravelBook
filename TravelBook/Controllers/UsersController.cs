@@ -14,8 +14,6 @@ namespace TravelBook.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(AuthenticationSchemes = "OpenIdConnect")]
-    [AuthorizeForScopes(Scopes = new string[] { "user.read", "user.readwrite.all", "device.read.all" })]
     public class UsersController : ControllerBase
     {
         private readonly GraphServiceClient _graphServiceClient;
