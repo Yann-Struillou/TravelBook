@@ -16,10 +16,6 @@ services:
     environment:
       ASPNETCORE_URLS: "https://+443;http://+80"
       ASPNETCORE_HTTPS_PORT: 443
-      AZURE_CLIENT_ID_FILE: /run/secrets/travelbook_azure_client_id
-      AZURE_CLIENT_SECRET_FILE: /run/secrets/travelbook_azure_client_secret
-      AZURE_TENANT_ID_FILE: /run/secrets/travelbook_azure_tenant_id
-      AZURE_KEYVAULT_URI_FILE: /run/secrets/travelbook_azure_keyvault_uri
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
       ASPNETCORE_Kestrel__Certificates__Default__PasswordFile: /run/secrets/travelbook_pfx_password  
     deploy:
