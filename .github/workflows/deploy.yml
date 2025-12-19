@@ -47,6 +47,12 @@ jobs:
           fi
           
       - name: Build and run Docker Compose
+        env:
+           AZURE_TENANT_ID: ${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}
+           AZURE_CLIENT_ID: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}
+           AZURE_CLIENT_SECRET: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}
+           AZURE_KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}
+           TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }} 
         run: |
           docker compose -f docker-compose.yml build
           docker compose -f docker-compose.yml up -d
