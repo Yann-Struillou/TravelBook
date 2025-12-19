@@ -15,7 +15,7 @@ using TravelBook.Services;
 
 string ReadSecret(string name)
 {
-    var path = $"/run/secrets/{name}";
+    var path = $"./{name}";
     if (!File.Exists(path))
         throw new Exception($"Docker secret not found: {path}");
 
