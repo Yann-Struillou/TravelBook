@@ -46,11 +46,10 @@ jobs:
             docker secret create travelbook_pfx_password -
           fi
           
-      - name: Build Docker image
-        run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
-          
-      - name: Deploy stack
-        run: docker stack deploy -c docker-compose.yml travelbook
+      - name: Build and run Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml up -d
 
       - name: Show running containers
         run: docker ps
