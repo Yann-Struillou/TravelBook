@@ -13,10 +13,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Ensure Docker Swarm is initialized
-        run: |
-          docker info | grep -q "Swarm: active" || docker swarm init
-
       - name: Add secrets files
         env:
            AZURE_TENANT_ID: ${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}
