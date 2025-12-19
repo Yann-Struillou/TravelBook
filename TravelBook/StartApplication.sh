@@ -3,10 +3,10 @@ set -e
 
 # Vérifier que les fichiers secrets existent
 for secret_file in \
-    "$AZURE_CLIENT_ID_FILE" \
-    "$AZURE_CLIENT_SECRET_FILE" \
-    "$AZURE_TENANT_ID_FILE" \
-    "$AZURE_KEYVAULT_URI_FILE"; do
+    "/run/secrets/travelbook_azure_client_id" \
+    "/run/secrets/travelbook_azure_client_secret" \
+    "/run/secrets/travelbook_azure_tenant_id" \
+    "/run/secrets/travelbook_azure_keyvault_uri"; do
   [ -f "$secret_file" ] || { echo "Secret file $secret_file missing"; exit 1; }
 done
 
