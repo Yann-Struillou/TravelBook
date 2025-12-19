@@ -56,6 +56,7 @@ jobs:
              docker service update --secret-add travelbook_azure_client_secret travelbook_web
              docker service update --secret-add travelbook_keyvault_uri travelbook_web
              docker service update --secret-add travelbook_pfx_password travelbook_web
+             docker service update --force travelbook_web
              sleep 15
 
       # ------------------------------------------------------------
