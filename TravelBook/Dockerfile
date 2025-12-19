@@ -23,21 +23,16 @@ RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 WORKDIR /app
 
-RUN --mount=type=secret,id=travelbook_azure_tenant_id
-RUN --mount=type=secret,id=travelbook_azure_client_id
-RUN --mount=type=secret,id=travelbook_azure_client_secret
-RUN --mount=type=secret,id=travelbook_azure_keyvault_uri
-
 # Copier l'application publiée
 COPY --from=build /app/publish .
 
 # Copier le script d'entrée et rendre exécutable
 COPY --chmod=755 TravelBook/StartApplication.sh ./StartApplication.sh
 
-COPY --chmod=755 /run/secrets/travelbook_azure_tenant_id ./travelbook_azure_tenant_id
-COPY --chmod=755 /run/secrets/travelbook_azure_client_id ./travelbook_azure_client_id
-COPY --chmod=755 /run/secrets/travelbook_azure_client_secret ./travelbook_azure_client_secret
-COPY --chmod=755 /run/secrets/travelbook_azure_keyvault_uri ./travelbook_azure_keyvault_uri
+RUN echo "$" > ./travelbook_azure_tenant_id
+RUN echo "$" > ./travelbook_azure_client_id
+RUN echo "$" > ./travelbook_azure_client_secret
+RUN echo "$" > ./travelbook_azure_keyvault_uri
 
 # Créer un utilisateur non-root
 RUN useradd -m appuser
