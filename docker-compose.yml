@@ -7,7 +7,7 @@ services:
       - travelbook_azure_client_id
       - travelbook_azure_client_secret
       - travelbook_azure_tenant_id
-      - travelbook_keyvault_uri
+      - travelbook_azure_keyvault_uri
     ports:
       - "80:80"
       - "443:443"
@@ -19,7 +19,7 @@ services:
       AZURE_CLIENT_ID_FILE: /run/secrets/travelbook_azure_client_id
       AZURE_CLIENT_SECRET_FILE: /run/secrets/travelbook_azure_client_secret
       AZURE_TENANT_ID_FILE: /run/secrets/travelbook_azure_tenant_id
-      KEYVAULT_URI_FILE: /run/secrets/travelbook_keyvault_uri
+      KEYVAULT_URI_FILE: /run/secrets/travelbook_azure_keyvault_uri
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
       ASPNETCORE_Kestrel__Certificates__Default__PasswordFile: /run/secrets/travelbook_pfx_password
 secrets:
@@ -29,5 +29,5 @@ secrets:
     external: true
   travelbook_azure_tenant_id:
     external: true
-  travelbook_keyvault_uri:
+  travelbook_azure_keyvault_uri:
     external: true
