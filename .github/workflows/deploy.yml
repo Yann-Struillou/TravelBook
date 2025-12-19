@@ -47,7 +47,7 @@ jobs:
           fi
           
       - name: Build Docker image
-        run: docker stack deploy --compose-file=docker-compose.yml travelbook
+        run: docker stack deploy --compose-file=docker-compose.yml travelbook_app:latest
 
       - name: Show running containers
         run: docker ps
