@@ -23,7 +23,7 @@ jobs:
       
       - name: Build and start container
         run: |
-          docker-compose up -d --build
+          docker compose up -d --build
 
       - name: Show logs
         run: |
