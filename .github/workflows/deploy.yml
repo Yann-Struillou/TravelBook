@@ -51,6 +51,12 @@ jobs:
       # ------------------------------------------------------------
       - name: Wait for services
         run: sleep 30
+             docker service update --secret-add travelbook_azure_tenant_id travelbook_web
+             docker service update --secret-add travelbook_azure_client_id travelbook_web
+             docker service update --secret-add travelbook_azure_client_secret travelbook_web
+             docker service update --secret-add travelbook_keyvault_uri travelbook_web
+             docker service update --secret-add travelbook_pfx_password travelbook_web
+             sleep 15
 
       # ------------------------------------------------------------
       # Diagnostics
