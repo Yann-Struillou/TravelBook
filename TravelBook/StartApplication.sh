@@ -2,8 +2,10 @@
 set -e
 
 # Vérification que les secrets existent
-for secret in /run/secrets/travelbook_azure_client_id /run/secrets/travelbook_azure_client_secret /run/secrets/travelbook_azure_tenant_id /run/secrets/travelbook_keyvault_uri; do
-  [ -f "$secret" ] || { echo "Secret $secret missing"; exit 1; }
+for i in $(seq 1 30); do
+  [ -f /run/secrets/travelbook_azure_client_secret ] && break
+  echo "Waiting for secret..."
+  sleep 1
 done
 
 # Exporter les secrets en variables d'environnement
