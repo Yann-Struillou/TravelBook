@@ -1,6 +1,8 @@
 services:
   web:
-    image: travelbook_app:latest
+    build:
+      context: .
+      dockerfile: TravelBook/Dockerfile
       secrets:
         - travelbook_azure_client_id
         - travelbook_azure_client_secret
