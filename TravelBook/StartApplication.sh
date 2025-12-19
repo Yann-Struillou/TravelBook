@@ -1,18 +1,20 @@
 #!/bin/sh
 set -e
 
-# Vérification que les secrets existent
-for i in $(seq 1 30); do
-  [ -f /run/secrets/travelbook_azure_client_secret ] && break
-  echo "Waiting for secret..."
-  sleep 1
+# Vérifier que les fichiers secrets existent
+for secret_file in \
+    "$AZURE_CLIENT_ID_FILE" \
+    "$AZURE_CLIENT_SECRET_FILE" \
+    "$AZURE_TENANT_ID_FILE" \
+    "$KEYVAULT_URI_FILE"; do
+  [ -f "$secret_file" ] || { echo "Secret file $secret_file missing"; exit 1; }
 done
 
-# Exporter les secrets en variables d'environnement
-export AZURE_TENANT_ID=$(cat /run/secrets/travelbook_azure_tenant_id)
-export AZURE_CLIENT_ID=$(cat /run/secrets/travelbook_azure_client_id)
-export AZURE_CLIENT_SECRET=$(cat /run/secrets/travelbook_azure_client_secret)
-export KEYVAULT_URI=$(cat /run/secrets/travelbook_keyvault_uri)
+# Exporter les valeurs en variables d'environnement
+export AZURE_CLIENT_ID=$(cat "$AZURE_CLIENT_ID_FILE")
+export AZURE_CLIENT_SECRET=$(cat "$AZURE_CLIENT_SECRET_FILE")
+export AZURE_TENANT_ID=$(cat "$AZURE_TENANT_ID_FILE")
+export KEYVAULT_URI=$(cat "$KEYVAULT_URI_FILE")
 
-# Démarrer l'application Blazor
+# Lancer l'application
 exec dotnet TravelBook.dll
