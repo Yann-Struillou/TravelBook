@@ -13,9 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --------------------------------------
-      # Créer le dossier secrets local
-      # --------------------------------------
+      - name: Ensure Docker Swarm is initialized
+        run: |
+          docker info | grep -q "Swarm: active" || docker swarm init
+
       - name: Add secrets files
         env:
            AZURE_TENANT_ID: ${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}
@@ -44,18 +45,10 @@ jobs:
             echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
             docker secret create travelbook_pfx_password -
           fi
+          
+      - name: Build Docker image
+        run: docker stack deploy --compose-file=docker-compose.yml travelbook
 
-      # --------------------------------------
-      # Build et lancer le container
-      # --------------------------------------
-      - name: Build and run Docker Compose
-        run: |
-          docker compose -f docker-compose.yml build
-          docker compose -f docker-compose.yml up -d
-
-      # --------------------------------------
-      # Diagnostics (optionnel)
-      # --------------------------------------
       - name: Show running containers
         run: docker ps
 
