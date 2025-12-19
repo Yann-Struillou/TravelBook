@@ -28,6 +28,10 @@ COPY --from=build /app/publish .
 
 # Copier le script d'entrée et rendre exécutable
 COPY --chmod=755 TravelBook/StartApplication.sh ./StartApplication.sh
+COPY --chmod=755 /run/secrets/travelbook_azure_tenant_id ./travelbook_azure_tenant_id
+COPY --chmod=755 /run/secrets/travelbook_azure_client_id ./travelbook_azure_client_id
+COPY --chmod=755 /run/secrets/travelbook_azure_client_secret ./travelbook_azure_client_secret
+COPY --chmod=755 /run/secrets/travelbook_azure_keyvault_uri ./travelbook_azure_keyvault_uri
 
 # Créer un utilisateur non-root
 RUN useradd -m appuser
