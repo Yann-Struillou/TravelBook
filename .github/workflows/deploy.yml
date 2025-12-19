@@ -16,16 +16,34 @@ jobs:
       # --------------------------------------
       # Créer le dossier secrets local
       # --------------------------------------
-      - name: Create secrets folder
-        run: mkdir -p ./secrets
-
       - name: Add secrets files
+        env:
+           AZURE_TENANT_ID: ${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}
+           AZURE_CLIENT_ID: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}
+           AZURE_CLIENT_SECRET: ${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}
+           AZURE_KEYVAULT_URI: ${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}
+           TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
         run: |
-          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_ID }}" > ./secrets/travelbook_azure_client_id
-          echo "${{ secrets.BLAZORWEBAPPENTRA_CLIENT_SECRET }}" > ./secrets/travelbook_azure_client_secret
-          echo "${{ secrets.BLAZORWEBAPPENTRA_TENANT_ID }}" > ./secrets/travelbook_azure_tenant_id
-          echo "${{ secrets.BLAZORWEBAPPENTRA_KEYVAULT_URI }}" > ./secrets/travelbook_keyvault_uri
-          echo "${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}" > ./secrets/travelbook_pfx_password
+          if ! docker secret inspect travelbook_azure_tenant_id >/dev/null 2>&1; then
+            echo "$AZURE_TENANT_ID" | \
+            docker secret create travelbook_azure_tenant_id -
+          fi
+          if ! docker secret inspect travelbook_azure_client_id >/dev/null 2>&1; then
+            echo "$AZURE_CLIENT_ID" | \
+            docker secret create travelbook_azure_client_id -
+          fi
+          if ! docker secret inspect travelbook_azure_client_secret >/dev/null 2>&1; then
+            echo "$AZURE_CLIENT_SECRET" | \
+            docker secret create travelbook_azure_client_secret -
+          fi 
+          if ! docker secret inspect travelbook_azure_keyvault_uri >/dev/null 2>&1; then
+            echo "$AZURE_KEYVAULT_URI" | \
+            docker secret create travelbook_azure_keyvault_uri -
+          fi 
+          if ! docker secret inspect travelbook_pfx_password >/dev/null 2>&1; then
+            echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
+            docker secret create travelbook_pfx_password -
+          fi
 
       # --------------------------------------
       # Build et lancer le container
