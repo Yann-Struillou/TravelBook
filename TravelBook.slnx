@@ -1,5 +1,8 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/deploy.yml" />
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Project Path="TravelBook.Client/TravelBook.Client.csproj" />
   <Project Path="TravelBook/TravelBook.csproj" />
-  <Project Path="TravelBookDto/TravelBookDto.csproj" Id="1a533983-268e-4a3a-9d1c-11c57ca65c46" />
 </Solution>

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using TravelBook.Client.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 

@@ -2,18 +2,22 @@ services:
   web:
     build:
       context: .
-      dockerfile: TravelBook/Dockerfile
+      dockerfile: Dockerfile
+    container_name: travelbook_web
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/travelbook.dev.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${TRAVELBOOK_APP_CERTIFICATE_SECRET}
     volumes:
       - /data/docker-data/certs:/https:ro
-    environment:
-      ASPNETCORE_URLS: "https://+443;http://+80"
-      ASPNETCORE_HTTPS_PORT: 443
-      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__PasswordFile: /run/secrets/travelbook_pfx_password  
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: none
+    restart: unless-stopped
+    networks:
+      - travelbook-network
+
+networks:
+  travelbook-network:
+    driver: bridge
