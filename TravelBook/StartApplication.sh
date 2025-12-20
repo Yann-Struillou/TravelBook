@@ -10,17 +10,17 @@ az login --service-principal \
   --tenant ${AZURE_TENANT_ID} > /dev/null 2>&1
 
 # Récupérer le secret
-echo "Récupération du secret depuis Key Vault..."
-export ENTRA_CLIENT_SECRET=$(az keyvault secret show \
-  --vault-name ${KEY_VAULT_NAME} \
-  --name ${KEY_VAULT_SECRET_NAME} \
-  --query value -o tsv)
+#echo "Récupération du secret depuis Key Vault..."
+#export ENTRA_CLIENT_SECRET=$(az keyvault secret show \
+#  --vault-name ${KEY_VAULT_NAME} \
+#  --name ${KEY_VAULT_SECRET_NAME} \
+#  --query value -o tsv)
 
-if [ -z "$ENTRA_CLIENT_SECRET" ]; then
-	echo "ERREUR: Impossible de récupérer le secret depuis Key Vault"
-	exit 1
-fi
+#if [ -z "$ENTRA_CLIENT_SECRET" ]; then
+#	echo "ERREUR: Impossible de récupérer le secret depuis Key Vault"
+#	exit 1
+#fi
 
 # Lancer l'application
-echo "Secret récupéré avec succès, démarrage de l application TravelBook ..."
+#echo "Secret récupéré avec succès, démarrage de l application TravelBook ..."
 exec dotnet TravelBook.dll
