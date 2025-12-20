@@ -12,28 +12,20 @@ services:
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/travelbook.dev.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${TRAVELBOOK_APP_CERTIFICATE_SECRET}
-
-      # Configuration Entra ID (pour l'auth des utilisateurs)
       - AzureAd__Instance=https://login.microsoftonline.com/
       - AzureAd__TenantId=${ENTRA_TENANT_ID}
       - AzureAd__ClientId=${ENTRA_CLIENT_ID}
       - AzureAd__Domain=${ENTRA_DOMAIN}
-      
-      # Service Principal (pour accès Key Vault)
       - AZURE_CLIENT_ID=${AZURE_SP_CLIENT_ID}
       - AZURE_CLIENT_SECRET=${AZURE_SP_CLIENT_SECRET}
       - AZURE_TENANT_ID=${AZURE_SP_TENANT_ID}
-      
-      # Key Vault
       - KEY_VAULT_NAME=${KEY_VAULT_NAME}
       - KEY_VAULT_SECRET_NAME=${KEY_VAULT_SECRET_NAME}
-
     volumes:
       - /data/docker-data/certs:/https:ro
     restart: unless-stopped
     networks:
       - travelbook-network
-
 networks:
   travelbook-network:
     driver: bridge
