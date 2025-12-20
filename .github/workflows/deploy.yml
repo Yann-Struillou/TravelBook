@@ -2,7 +2,7 @@ name: Deploy TravelBook App
 
 on:
   push:
-    branches: [ self-hosted-test ]
+    branches: [ self-hosted-secret-test ]
   workflow_dispatch:
 
 jobs:
