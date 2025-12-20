@@ -1,3 +1,5 @@
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -10,22 +12,52 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+var useEntraID = builder.Configuration["UseEntraID"];
+
+if (!string.IsNullOrEmpty(useEntraID) &&
+    useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
+{
+    var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+    if (!string.IsNullOrEmpty(keyVaultUri))
+    {
+        // Ajout de KeyVault ? la configuration
+        builder.Configuration.AddAzureKeyVault(
+            new Uri(keyVaultUri),
+            new DefaultAzureCredential());
+
+        var secretClient = new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
+
+        // Lecture du secret Azure AD
+        var clientSecretName = builder.Configuration["KeyVault:AzureAdClientSecret"];
+        if (!string.IsNullOrEmpty(clientSecretName))
+        {
+            KeyVaultSecret clientSecret = secretClient.GetSecret(clientSecretName);
+            string clientSecretValue = clientSecret.Value
+                ?? throw new InvalidOperationException("Azure AD client secret not found in KeyVault.");
+
+            // Injecte la valeur r?elle dans la configuration avant l'auth
+            builder.Configuration["AzureAd:ClientSecret"] = clientSecretValue;
+        }
+    }
+}
+
+
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(options =>
     {
         builder.Configuration.Bind("AzureAd", options);
         
-        // Get the client secret from environnement variable
-        var clientSecret = Environment.GetEnvironmentVariable("ENTRA_CLIENT_SECRET");
+        //// Get the client secret from environnement variable
+        //var clientSecret = Environment.GetEnvironmentVariable("ENTRA_CLIENT_SECRET");
 
-        if (string.IsNullOrEmpty(clientSecret))
-        {
-            throw new InvalidOperationException(
-                "ENTRA_CLIENT_SECRET environment variable is not set. " +
-                "The application cannot start without the client secret.");
-        }
-        Console.WriteLine($"ClientSecret loaded: {clientSecret.Length} characters");
-        options.ClientSecret = clientSecret;
+        //if (string.IsNullOrEmpty(clientSecret))
+        //{
+        //    throw new InvalidOperationException(
+        //        "ENTRA_CLIENT_SECRET environment variable is not set. " +
+        //        "The application cannot start without the client secret.");
+        //}
+        //Console.WriteLine($"ClientSecret loaded: {clientSecret.Length} characters");
+        //options.ClientSecret = clientSecret;
 
         options.CallbackPath = "/signin-oidc";
         options.SignedOutCallbackPath = "/signout-callback-oidc";
