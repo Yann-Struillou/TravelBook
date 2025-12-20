@@ -28,6 +28,13 @@ RUN dotnet publish "TravelBook.csproj" -c Release -o /app/publish /p:UseAppHost=
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble as final
 WORKDIR /app
 
+# Installer Azure CLI
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -sL https://aka.ms/InstallAzureCLIDeb | bash && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copier l'application publiée
 COPY --from=publish /app/publish .
 

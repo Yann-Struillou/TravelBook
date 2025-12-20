@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Identity.Web;
 using TravelBook.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,25 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApp(options =>
+    {
+        builder.Configuration.Bind("AzureAd", options);
+        
+        // Get the client secret from environnement variable
+        var clientSecret = Environment.GetEnvironmentVariable("ENTRA_CLIENT_SECRET");
+
+        if (string.IsNullOrEmpty(clientSecret))
+        {
+            throw new InvalidOperationException(
+                "ENTRA_CLIENT_SECRET environment variable is not set. " +
+                "The application cannot start without the client secret.");
+        }
+
+        options.ClientSecret = clientSecret;
+    });
+
+builder.Services.AddAuthorization();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
 
@@ -27,9 +48,13 @@ else
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-app.UseAntiforgery();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseAntiforgery();
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()

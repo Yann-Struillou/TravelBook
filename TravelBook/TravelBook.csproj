@@ -9,7 +9,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TravelBook.Client\TravelBook.Client.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.1" />
 	  <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
+	  <PackageReference Include="Microsoft.Identity.Web" Version="4.2.0" />
   </ItemGroup>
 
 </Project>
