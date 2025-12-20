@@ -27,6 +27,34 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
         Console.WriteLine($"ClientSecret loaded: {clientSecret.Length} characters");
         options.ClientSecret = clientSecret;
 
+        options.CallbackPath = "/signin-oidc";
+        options.SignedOutCallbackPath = "/signout-callback-oidc";
+
+        var existingRedirectHandler = options.Events.OnRedirectToIdentityProvider;
+        var existingLogoutHandler = options.Events.OnRedirectToIdentityProviderForSignOut;
+
+        options.Events = new OpenIdConnectEvents
+        {
+            OnRedirectToIdentityProvider = context =>
+            {
+                existingRedirectHandler?.Invoke(context);
+                
+                return Task.CompletedTask;
+            },
+            OnRedirectToIdentityProviderForSignOut = context =>
+            {
+                existingLogoutHandler?.Invoke(context);
+
+                // Forcer le redirect_uri à utiliser votre IP locale
+                context.ProtocolMessage.RedirectUri = builder.Configuration["AzureAd:SignedOutRedirectUri"];
+
+                // Forcer le post_logout_redirect_uri
+                context.ProtocolMessage.PostLogoutRedirectUri = builder.Configuration["AzureAd:PostLogoutRedirectUri"];
+
+                return Task.CompletedTask;
+            }
+        };
+
         options.SaveTokens = true;
     });
 

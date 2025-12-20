@@ -1,0 +1,23 @@
+﻿@page "/logout"
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+
+        if (httpContext != null)
+        {
+            // Se déconnecter d'OpenID Connect et des cookies
+            await httpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
+        // Rediriger vers la page d'accueil
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}
