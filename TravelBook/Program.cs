@@ -24,7 +24,7 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 "ENTRA_CLIENT_SECRET environment variable is not set. " +
                 "The application cannot start without the client secret.");
         }
-
+        Console.WriteLine($"ClientSecret loaded: {clientSecret.Length} characters");
         options.ClientSecret = clientSecret;
 
         options.SaveTokens = true;
