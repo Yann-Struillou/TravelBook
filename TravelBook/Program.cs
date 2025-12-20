@@ -26,6 +26,8 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
         }
 
         options.ClientSecret = clientSecret;
+
+        options.SaveTokens = true;
     });
 
 builder.Services.AddAuthorization();
