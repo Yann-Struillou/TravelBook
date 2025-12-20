@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 using TravelBook.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +29,15 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddRazorPages();
+
+builder.Services.AddControllersWithViews()
+    .AddMicrosoftIdentityUI();
+
+builder.Services.AddRazorPages()
+    .AddMicrosoftIdentityUI();
+
+builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddHttpContextAccessor();
 
 // Pipeline
