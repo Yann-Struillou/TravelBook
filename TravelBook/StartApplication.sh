@@ -3,7 +3,7 @@
 set -e
 
 # Connexion avec Service Principal
-#echo "Connexion � Azure avec Service Principal..."
+#echo "Connexion a Azure avec Service Principal..."
 #az login --service-principal \
 #  -u ${AZURE_CLIENT_ID} \
 # -p ${AZURE_CLIENT_SECRET} \
@@ -17,10 +17,10 @@ set -e
 #  --query value -o tsv)
 
 #if [ -z "$ENTRA_CLIENT_SECRET" ]; then
-#	echo "ERREUR: Impossible de r�cup�rer le secret depuis Key Vault"
+#	echo "ERREUR: Impossible de recuperer le secret depuis Key Vault"
 #	exit 1
 #fi
 
 # Lancer l'application
-#echo "Secret r�cup�r� avec succ�s, d�marrage de l application TravelBook ..."
+#echo "Secret r�cup�r� avec succes, demarrage de l application TravelBook ..."
 exec dotnet TravelBook.dll
