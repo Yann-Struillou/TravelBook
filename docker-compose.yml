@@ -1,21 +1,31 @@
 services:
   web:
-    image: travelbook_app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: travelbook_web
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/travelbook.dev.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${TRAVELBOOK_APP_CERTIFICATE_SECRET}
+      - AzureAd__Instance=https://login.microsoftonline.com/
+      - AzureAd__TenantId=${ENTRA_TENANT_ID}
+      - AzureAd__ClientId=${ENTRA_CLIENT_ID}
+      - AzureAd__Domain=${ENTRA_DOMAIN}
+      - AZURE_CLIENT_ID=${AZURE_SP_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_SP_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_SP_TENANT_ID}
+      - KEY_VAULT_NAME=${KEY_VAULT_NAME}
+      - KEY_VAULT_SECRET_NAME=${KEY_VAULT_SECRET_NAME}
     volumes:
       - /data/docker-data/certs:/https:ro
-    secrets:
-      - travelbook_pfx_password
-    environment:
-      ASPNETCORE_URLS: https://+:8080
-      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/travelbook.pfx
-      ASPNETCORE_Kestrel__Certificates__Default__PasswordFile: /run/secrets/travelbook_pfx_password
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: none
-
-secrets:
-  travelbook_pfx_password:
-    external: true
+    restart: unless-stopped
+    networks:
+      - travelbook-network
+networks:
+  travelbook-network:
+    driver: bridge
