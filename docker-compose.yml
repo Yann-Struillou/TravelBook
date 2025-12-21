@@ -16,9 +16,6 @@ services:
       - AzureAd__TenantId=${ENTRA_TENANT_ID}
       - AzureAd__ClientId=${ENTRA_CLIENT_ID}
       - AzureAd__Domain=${ENTRA_DOMAIN}
-      - AZURE_CLIENT_ID=${AZURE_SP_CLIENT_ID}
-      - AZURE_CLIENT_SECRET=${AZURE_SP_CLIENT_SECRET}
-      - AZURE_TENANT_ID=${AZURE_SP_TENANT_ID}
       - KEY_VAULT_NAME=${KEY_VAULT_NAME}
       - KEY_VAULT_SECRET_NAME=${KEY_VAULT_SECRET_NAME}
     volumes:
