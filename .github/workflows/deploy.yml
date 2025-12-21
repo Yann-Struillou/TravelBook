@@ -18,17 +18,27 @@ jobs:
           docker-compose down || true
       
       - name: Create .env file
+        env:
+          TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
+          ENTRA_TENANT_ID: ${{ secrets.ENTRA_TENANT_ID }}
+          ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
+          ENTRA_DOMAIN: ${{ secrets.ENTRA_DOMAIN }}
+          AZURE_SP_CLIENT_ID: ${{ secrets.AZURE_SP_CLIENT_ID }}
+          AZURE_SP_CLIENT_SECRET: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+          AZURE_SP_TENANT_ID: ${{ secrets.AZURE_SP_TENANT_ID }}
+          KEY_VAULT_NAME: ${{ secrets.KEY_VAULT_NAME }}
+          KEY_VAULT_SECRET_NAME: ${{ secrets.KEY_VAULT_SECRET_NAME }}
         run: |
           cat > .env << EOF
-          TRAVELBOOK_APP_CERTIFICATE_SECRET=${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
-          ENTRA_TENANT_ID=${{ secrets.ENTRA_TENANT_ID }}
-          ENTRA_CLIENT_ID=${{ secrets.ENTRA_CLIENT_ID }}
-          ENTRA_DOMAIN=${{ secrets.ENTRA_DOMAIN }}
-          AZURE_SP_CLIENT_ID=${{ secrets.AZURE_SP_CLIENT_ID }}
-          AZURE_SP_CLIENT_SECRET=${{ secrets.AZURE_SP_CLIENT_SECRET }}
-          AZURE_SP_TENANT_ID=${{ secrets.AZURE_SP_TENANT_ID }}
-          KEY_VAULT_NAME=${{ secrets.KEY_VAULT_NAME }}
-          KEY_VAULT_SECRET_NAME=${{ secrets.KEY_VAULT_SECRET_NAME }}
+          TRAVELBOOK_APP_CERTIFICATE_SECRET=$TRAVELBOOK_APP_CERTIFICATE_SECRET
+          ENTRA_TENANT_ID=$ENTRA_TENANT_ID
+          ENTRA_CLIENT_ID=$ENTRA_CLIENT_ID
+          ENTRA_DOMAIN=$ENTRA_DOMAIN
+          AZURE_SP_CLIENT_ID=$AZURE_SP_CLIENT_ID
+          AZURE_SP_CLIENT_SECRET=$AZURE_SP_CLIENT_SECRET
+          AZURE_SP_TENANT_ID=$AZURE_SP_TENANT_ID
+          KEY_VAULT_NAME=$KEY_VAULT_NAME
+          KEY_VAULT_SECRET_NAME=$KEY_VAULT_SECRET_NAME
           EOF
 
       - name: Build and start container

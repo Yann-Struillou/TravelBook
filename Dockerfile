@@ -31,7 +31,7 @@ WORKDIR /app
 # Installer Azure CLI
 RUN apt-get update && \
     apt-get install -y curl && \
-    curl -sL https://aka.ms/InstallAzureCLIDeb | bash && \
+    curl --proto "=https" --tlsv1.2 -sSf -L https://aka.ms/InstallAzureCLIDeb | bash && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
