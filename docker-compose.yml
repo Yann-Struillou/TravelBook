@@ -23,6 +23,7 @@ services:
       - KEY_VAULT_SECRET_NAME=${KEY_VAULT_SECRET_NAME}
     volumes:
       - /data/docker-data/certs:/https:ro
+      - /data/docker-data/data-protection:/data-protection:rw
     restart: unless-stopped
     networks:
       - travelbook-network
