@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using System.IdentityModel.Tokens.Jwt;
+using TravelBook.Client.Services;
 using TravelBook.Components;
 using TravelBook.Services;
 
@@ -141,6 +140,8 @@ builder.Services.AddAuthorizationBuilder().SetFallbackPolicy(null);
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.LoadClientServerServices();
 
 
 // Pipeline
