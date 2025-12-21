@@ -134,7 +134,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     });
 
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/home/data-protection"))
+    .PersistKeysToFileSystem(new DirectoryInfo("/data-protection"))
     .SetApplicationName("TravelBook");
 
 builder.Services.AddAuthorizationBuilder().SetFallbackPolicy(null);
