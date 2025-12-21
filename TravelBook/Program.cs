@@ -1,5 +1,6 @@
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -59,8 +60,8 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
         //Console.WriteLine($"ClientSecret loaded: {clientSecret.Length} characters");
         //options.ClientSecret = clientSecret;
 
-        options.CallbackPath = "/signin-oidc";
-        options.SignedOutCallbackPath = "/signout-callback-oidc";
+        //options.CallbackPath = "/signin-oidc";
+        //options.SignedOutCallbackPath = "/signout-callback-oidc";
 
         var existingRedirectHandler = options.Events.OnRedirectToIdentityProvider;
         var existingLogoutHandler = options.Events.OnRedirectToIdentityProviderForSignOut;
@@ -70,20 +71,36 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
             OnRedirectToIdentityProvider = context =>
             {
                 existingRedirectHandler?.Invoke(context);
-                
+
+                var login_hint = context.HttpContext.User.Claims.Where(c => c.Type == "login_hint").FirstOrDefault();
+                if (login_hint != null)
+                {
+                    context.ProtocolMessage.SetParameter("login_hint", login_hint.Value);
+                }
+
                 return Task.CompletedTask;
             },
-            OnRedirectToIdentityProviderForSignOut = context =>
+            OnRedirectToIdentityProviderForSignOut = async context =>
             {
                 existingLogoutHandler?.Invoke(context);
+
+                var idToken = await context.HttpContext.GetTokenAsync("id_token");
+                if (!string.IsNullOrEmpty(idToken))
+                {
+                    context.ProtocolMessage.IdTokenHint = idToken;
+                }
+
+                var login_hint = context.HttpContext.User.Claims.Where(c => c.Type == "login_hint").FirstOrDefault();
+                if (login_hint != null)
+                {
+                    context.ProtocolMessage.SetParameter("logout_hint", login_hint.Value);
+                }
 
                 // Forcer le redirect_uri à utiliser votre IP locale
                 context.ProtocolMessage.RedirectUri = builder.Configuration["AzureAd:SignedOutRedirectUri"];
 
                 // Forcer le post_logout_redirect_uri
                 context.ProtocolMessage.PostLogoutRedirectUri = builder.Configuration["AzureAd:PostLogoutRedirectUri"];
-
-                return Task.CompletedTask;
             }
         };
 
