@@ -4,7 +4,7 @@
     {
         public static void LoadClientServerServices(this IServiceCollection services)
         { 
-            services?.AddScoped<UsersService>();
+            services?.AddScoped<IUsersService, UsersService>();
         }
     }
 }

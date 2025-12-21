@@ -38,7 +38,7 @@
 
 @code {
     [Inject]
-    public UsersService UsersService { get; set; } = default!;
+    public IUsersService UsersService { get; set; } = default!;
 
     private CreateUserFormModel userModel = new();
     private string resultMessage = string.Empty;
