@@ -1,4 +1,7 @@
-﻿using Moq;
+﻿using Bunit;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using TravelBook.Client.Pages;
 using TravelBook.Client.Services;
 using TravelBook.Client.ViewModels.Users;
@@ -10,31 +13,52 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
     public class CreateUserTests
     {
         private readonly Mock<IUsersService> _mockUsersService;
-        private readonly CreateUser _component;
+        private readonly BunitContext _context;
 
         public CreateUserTests()
         {
             _mockUsersService = new Mock<IUsersService>();
-            _component = new CreateUser
+            _context = new BunitContext();
+
+            // Enregistrement du service via ServiceCollection
+            var services = new ServiceCollection();
+            services.Add(ServiceDescriptor.Singleton<IUsersService>(sp => _mockUsersService.Object));
+
+            // Appliquer les services au contexte
+            foreach (var service in services)
             {
-                UsersService = _mockUsersService.Object
-            };
+                _context.Services.Add(service);
+            }
+        }
+
+        [Fact]
+        public void Component_RendersCorrectly()
+        {
+            // Act
+            var cut = _context.Render<CreateUser>();
+
+            // Assert
+            Assert.NotNull(cut);
+        }
+
+        [Fact]
+        public void UsersService_IsInjectedCorrectly()
+        {
+            // Act
+            var cut = _context.Render<CreateUser>();
+
+            // Assert
+            Assert.NotNull(cut.Instance.UsersService);
+            Assert.Same(_mockUsersService.Object, cut.Instance.UsersService);
         }
 
         [Fact]
         public async Task HandleValidSubmit_CreatesUser_WhenDataIsValid()
         {
             // Arrange
-            var userModel = new CreateUserFormModel
-            {
-                UserPrincipalName = "test@example.com",
-                DisplayName = "Test User",
-                MailNickName = "testuser"
-            };
-
             var expectedUser = new CreateUserResponseDto
             (
-                Message : "Message",
+                Message : "Utilisateur créé avec succès",
                 UserId : Guid.NewGuid().ToString(),
                 UserPrincipalName : "test@example.com",
                 UserDisplayName : "Test User",
@@ -45,13 +69,21 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
                 .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
                 .ReturnsAsync(expectedUser);
 
-            // Utiliser la réflexion pour définir le modèle privé
+            var cut = _context.Render<CreateUser>();
+
+            // Définir le modèle utilisateur via réflexion
             var userModelField = typeof(CreateUser).GetField("userModel",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            userModelField?.SetValue(_component, userModel);
+            var userModel = new CreateUserFormModel
+            {
+                UserPrincipalName = "test@example.com",
+                DisplayName = "Test User",
+                MailNickName = "testuser"
+            };
+            userModelField?.SetValue(cut.Instance, userModel);
 
             // Act
-            await InvokeHandleValidSubmit();
+            await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
 
             // Assert
             _mockUsersService.Verify(s => s.CreateUserAsync(It.Is<CreateUserDto>(dto =>
@@ -60,7 +92,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
                 dto.MailNickName == "testuser"
             )), Times.Once);
 
-            var resultMessage = GetResultMessage();
+            var resultMessage = GetResultMessage(cut.Instance);
             Assert.Contains("Utilisateur créé", resultMessage);
             Assert.Contains("Test User", resultMessage);
             Assert.Contains("test@example.com", resultMessage);
@@ -70,16 +102,9 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
         public async Task HandleValidSubmit_ResetsForm_AfterSuccessfulCreation()
         {
             // Arrange
-            var userModel = new CreateUserFormModel
-            {
-                UserPrincipalName = "test@example.com",
-                DisplayName = "Test User",
-                MailNickName = "testuser"
-            };
-
             var expectedUser = new CreateUserResponseDto
             (
-                Message: "Message",
+                Message: "Utilisateur créé avec succès",
                 UserId: Guid.NewGuid().ToString(),
                 UserPrincipalName: "test@example.com",
                 UserDisplayName: "Test User",
@@ -90,19 +115,27 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
                 .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
                 .ReturnsAsync(expectedUser);
 
+            var cut = _context.Render<CreateUser>();
+
             var userModelField = typeof(CreateUser).GetField("userModel",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            userModelField?.SetValue(_component, userModel);
+            var userModel = new CreateUserFormModel
+            {
+                UserPrincipalName = "test@example.com",
+                DisplayName = "Test User",
+                MailNickName = "testuser"
+            };
+            userModelField?.SetValue(cut.Instance, userModel);
 
             // Act
-            await InvokeHandleValidSubmit();
+            await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
 
             // Assert
-            var resetModel = userModelField?.GetValue(_component) as CreateUserFormModel;
+            var resetModel = userModelField?.GetValue(cut.Instance) as CreateUserFormModel;
             Assert.NotNull(resetModel);
-            Assert.NotNull(resetModel.UserPrincipalName);
-            Assert.NotNull(resetModel.DisplayName);
-            Assert.NotNull(resetModel.MailNickName);
+            Assert.Empty(resetModel.UserPrincipalName);
+            Assert.Empty(resetModel.DisplayName);
+            Assert.Empty(resetModel.MailNickName);
         }
 
         [Fact]
@@ -114,22 +147,23 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
                 .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
                 .ThrowsAsync(new Exception(exceptionMessage));
 
+            var cut = _context.Render<CreateUser>();
+
+            var userModelField = typeof(CreateUser).GetField("userModel",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var userModel = new CreateUserFormModel
             {
                 UserPrincipalName = "test@example.com",
                 DisplayName = "Test User",
                 MailNickName = "testuser"
             };
-
-            var userModelField = typeof(CreateUser).GetField("userModel",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            userModelField?.SetValue(_component, userModel);
+            userModelField?.SetValue(cut.Instance, userModel);
 
             // Act
-            await InvokeHandleValidSubmit();
+            await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
 
             // Assert
-            var resultMessage = GetResultMessage();
+            var resultMessage = GetResultMessage(cut.Instance);
             Assert.Contains("Erreur", resultMessage);
             Assert.Contains(exceptionMessage, resultMessage);
         }
@@ -138,26 +172,27 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
         public async Task HandleValidSubmit_DoesNotResetForm_WhenExceptionOccurs()
         {
             // Arrange
+            _mockUsersService
+                .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
+                .ThrowsAsync(new Exception("Erreur"));
+
+            var cut = _context.Render<CreateUser>();
+
+            var userModelField = typeof(CreateUser).GetField("userModel",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var userModel = new CreateUserFormModel
             {
                 UserPrincipalName = "test@example.com",
                 DisplayName = "Test User",
                 MailNickName = "testuser"
             };
-
-            _mockUsersService
-                .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
-                .ThrowsAsync(new Exception("Erreur"));
-
-            var userModelField = typeof(CreateUser).GetField("userModel",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            userModelField?.SetValue(_component, userModel);
+            userModelField?.SetValue(cut.Instance, userModel);
 
             // Act
-            await InvokeHandleValidSubmit();
+            await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
 
             // Assert
-            var currentModel = userModelField?.GetValue(_component) as CreateUserFormModel;
+            var currentModel = userModelField?.GetValue(cut.Instance) as CreateUserFormModel;
             Assert.NotNull(currentModel);
             Assert.Equal("test@example.com", currentModel.UserPrincipalName);
             Assert.Equal("Test User", currentModel.DisplayName);
@@ -172,22 +207,23 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
                 .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
                 .ReturnsAsync((CreateUserResponseDto?)null);
 
+            var cut = _context.Render<CreateUser>();
+
+            var userModelField = typeof(CreateUser).GetField("userModel",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var userModel = new CreateUserFormModel
             {
                 UserPrincipalName = "test@example.com",
                 DisplayName = "Test User",
                 MailNickName = "testuser"
             };
-
-            var userModelField = typeof(CreateUser).GetField("userModel",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            userModelField?.SetValue(_component, userModel);
+            userModelField?.SetValue(cut.Instance, userModel);
 
             // Act
-            await InvokeHandleValidSubmit();
+            await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
 
             // Assert
-            var resultMessage = GetResultMessage();
+            var resultMessage = GetResultMessage(cut.Instance);
             Assert.Contains("Utilisateur créé", resultMessage);
         }
 
@@ -204,23 +240,23 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
         }
 
         // Méthodes helper privées
-        private async Task InvokeHandleValidSubmit()
+        private async Task InvokeHandleValidSubmit(CreateUser component)
         {
             var method = typeof(CreateUser).GetMethod("HandleValidSubmit",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-            var task = method?.Invoke(_component, null) as Task;
+            var task = method?.Invoke(component, null) as Task;
             if (task != null)
             {
                 await task;
             }
         }
 
-        private string GetResultMessage()
+        private string GetResultMessage(CreateUser component)
         {
             var field = typeof(CreateUser).GetField("resultMessage",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            return field?.GetValue(_component) as string ?? string.Empty;
+            return field?.GetValue(component) as string ?? string.Empty;
         }
     }
 }

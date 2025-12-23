@@ -22,13 +22,16 @@ namespace TravelBook.Client.Pages
                     userModel.DisplayName,
                     userModel.MailNickName
                 ));
+
                 resultMessage = $"Utilisateur créé : {createdUser?.UserDisplayName} ({createdUser?.UserPrincipalName})";
                 userModel = new CreateUserFormModel(); // Reset du formulaire
+
+                StateHasChanged(); // Force le re-render
             }
             catch (Exception ex)
             {
                 resultMessage = $"Erreur : {ex.Message}";
-                StateHasChanged();
+                StateHasChanged(); // Force le re-render même en cas d'erreur
             }
         }
     }
