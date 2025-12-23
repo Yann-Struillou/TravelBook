@@ -98,8 +98,9 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             await InvokeHandleValidSubmit();
 
             // Assert
-            var resetModel = userModelField?.GetValue(_component) as CreateUserFormModel;
-            Assert.NotNull(resetModel);
+            var resetModelObj = userModelField?.GetValue(_component);
+            Assert.NotNull(resetModelObj);
+            var resetModel = Assert.IsType<CreateUserFormModel>(resetModelObj);
             Assert.NotNull(resetModel.UserPrincipalName);
             Assert.NotNull(resetModel.DisplayName);
             Assert.NotNull(resetModel.MailNickName);
