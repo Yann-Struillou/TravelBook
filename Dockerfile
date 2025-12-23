@@ -25,7 +25,7 @@ RUN dotnet publish "TravelBook.csproj" -c Release -o /app/publish /p:UseAppHost=
 # ================================
 # Stage 2 : Runtime
 # ================================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble as final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS final
 WORKDIR /app
 
 # Installer Azure CLI
