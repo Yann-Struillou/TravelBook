@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TravelBook.Client.Services;
 
-namespace TravelBook.xUnit
+namespace TravelBook.xUnit.TravelBook.Client
 {
     public class ClientServiceLoaderTests
     {
@@ -37,7 +37,5 @@ namespace TravelBook.xUnit
 
             Assert.Null(exception);
         }
-
-
     }
 }
