@@ -28,6 +28,7 @@ namespace TravelBook.Client.Pages
             catch (Exception ex)
             {
                 resultMessage = $"Erreur : {ex.Message}";
+                StateHasChanged();
             }
         }
     }
