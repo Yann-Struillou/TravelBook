@@ -42,7 +42,6 @@
 
     private CreateUserFormModel userModel = new();
     private string resultMessage = string.Empty;
-    private string resultMessageCss = "alert-info";
 
     private async Task HandleValidSubmit()
     {
@@ -54,13 +53,11 @@
                 userModel.MailNickName
             ));
             resultMessage = $"Utilisateur créé : {createdUser?.UserDisplayName} ({createdUser?.UserPrincipalName})";
-            resultMessageCss = "alert-success";
             userModel = new CreateUserFormModel(); // Reset du formulaire
         }
         catch (Exception ex)
         {
             resultMessage = $"Erreur : {ex.Message}";
-            resultMessageCss = "alert-danger";
         }
     }
 }

@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TravelBook.Client\TravelBook.Client.csproj" />
+    <ProjectReference Include="..\TravelBook\TravelBook.csproj" />
   </ItemGroup>
 
   <ItemGroup>

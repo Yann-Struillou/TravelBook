@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TravelBook.Client.Services;
 
-namespace Test.TravelBook.Client
+namespace TravelBook.xUnit
 {
     public class ClientServiceLoaderTests
     {
@@ -17,7 +17,7 @@ namespace Test.TravelBook.Client
             // Assert
             var descriptor = Assert.Single(
                 services,
-                s => s.ServiceType == typeof(UsersService)
+                s => s.ServiceType == typeof(IUsersService)
             );
 
             Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
@@ -37,5 +37,7 @@ namespace Test.TravelBook.Client
 
             Assert.Null(exception);
         }
+
+
     }
 }

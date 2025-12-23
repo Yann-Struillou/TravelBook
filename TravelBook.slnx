@@ -2,9 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path="Dockerfile" />
   </Folder>
-  <Project Path="Test.TravelBook.Client/Test.TravelBook.Client.csproj" Id="186212a7-09e7-4923-b7a8-01f9cf4fb81a" />
-  <Project Path="Test.TravelBook/Test.TravelBook.csproj" Id="5246a5c5-c3a9-4800-99ab-b998d3a3e401" />
   <Project Path="TravelBook.Client/TravelBook.Client.csproj" />
+  <Project Path="TravelBook.xUnit/TravelBook.xUnit.csproj" Id="5c6a7127-4598-47e7-bc3f-b3f0efda421d" />
   <Project Path="TravelBook/TravelBook.csproj" />
   <Project Path="TravelBookDto/TravelBookDto.csproj" Id="1a533983-268e-4a3a-9d1c-11c57ca65c46" />
 </Solution>
