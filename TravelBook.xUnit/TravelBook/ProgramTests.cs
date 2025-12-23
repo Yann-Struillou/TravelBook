@@ -77,7 +77,7 @@ public class LoadClientServerServicesTests
         IServiceCollection? services = null;
 
         // Act & Assert - Vérifie que la méthode gère null gracieusement
-        var exception = Record.Exception(() => services.LoadClientServerServices());
+        var exception = Record.Exception(() => services!.LoadClientServerServices());
         Assert.Null(exception); // Ne devrait pas lancer d'exception grâce à services?
     }
 }
