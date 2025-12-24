@@ -194,9 +194,10 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             // Assert
             var currentModel = userModelField?.GetValue(cut.Instance) as CreateUserFormModel;
             Assert.NotNull(currentModel);
-            Assert.Equal("test@example.com", currentModel.UserPrincipalName);
-            Assert.Equal("Test User", currentModel.DisplayName);
-            Assert.Equal("testuser", currentModel.MailNickName);
+            var nonNullModel = Assert.IsType<CreateUserFormModel>(currentModel);
+            Assert.Equal("test@example.com", nonNullModel.UserPrincipalName);
+            Assert.Equal("Test User", nonNullModel.DisplayName);
+            Assert.Equal("testuser", nonNullModel.MailNickName);
         }
 
         [Fact]
