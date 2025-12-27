@@ -46,7 +46,7 @@ namespace TravelBook.Controllers
                 var user = users?.Value?.FirstOrDefault();
 
                 return user is null
-                    ? throw new Exception($"Graph API error")
+                    ? throw new ArgumentException($"Graph API error")
                     : (ActionResult<GetUserResponseDto>)Ok(new GetUserResponseDto(
                         "User found",
                         user.Id,
@@ -79,7 +79,7 @@ namespace TravelBook.Controllers
                 var user = users?.Value?.FirstOrDefault();
 
                 return user is null
-                    ? throw new Exception($"Graph API error")
+                    ? throw new ArgumentException($"Graph API error")
                     : (ActionResult<GetUserResponseDto>)Ok(new GetUserResponseDto(
                         "User found",
                         user.Id,

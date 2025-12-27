@@ -244,7 +244,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
         }
 
         // Méthodes helper privées
-        private async Task InvokeHandleValidSubmit(CreateUser component)
+        private static async Task InvokeHandleValidSubmit(CreateUser component)
         {
             var method = typeof(CreateUser).GetMethod("HandleValidSubmit",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -256,7 +256,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             }
         }
 
-        private string GetResultMessage(CreateUser component)
+        private static string GetResultMessage(CreateUser component)
         {
             var field = typeof(CreateUser).GetField("resultMessage",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
