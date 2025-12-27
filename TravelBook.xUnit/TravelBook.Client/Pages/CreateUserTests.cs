@@ -133,8 +133,9 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
 
             // Assert
-            var resetModel = userModelField.GetValue(cut.Instance) as CreateUserFormModel;
-            Assert.NotNull(resetModel);
+            var resetModelObj = userModelField.GetValue(cut.Instance) as CreateUserFormModel;
+            Assert.NotNull(resetModelObj);
+            var resetModel = resetModelObj!;
             Assert.Empty(resetModel.UserPrincipalName);
             Assert.Empty(resetModel.DisplayName);
             Assert.Empty(resetModel.MailNickName);
@@ -153,13 +154,14 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
 
             var userModelField = typeof(CreateUser).GetField("userModel",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.NotNull(userModelField);
             var userModel = new CreateUserFormModel
             {
                 UserPrincipalName = "test@example.com",
                 DisplayName = "Test User",
                 MailNickName = "testuser"
             };
-            userModelField?.SetValue(cut.Instance, userModel);
+            userModelField.SetValue(cut.Instance, userModel);
 
             // Act
             await cut.InvokeAsync(async () => await InvokeHandleValidSubmit(cut.Instance));
