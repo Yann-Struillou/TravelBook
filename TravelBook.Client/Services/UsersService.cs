@@ -1,11 +1,9 @@
 ﻿using System.Net.Http.Json;
-using System.Reflection;
-using TravelBook.Client.ViewModels.Users;
 using TravelBookDto.Users;
 
 namespace TravelBook.Client.Services
 {
-    public class UsersService
+    public class UsersService : IUsersService
     {
         private readonly HttpClient _http;
 
@@ -65,7 +63,7 @@ namespace TravelBook.Client.Services
             }
 
             var error = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-            throw new Exception(error?["Error"] ?? response.ReasonPhrase);
+            throw new ArgumentNullException(error?["Error"] ?? response.ReasonPhrase);
         }
     }
 }

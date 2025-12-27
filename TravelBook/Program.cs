@@ -8,25 +8,13 @@ using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using System.IdentityModel.Tokens.Jwt;
+using TravelBook.Client.Services;
 using TravelBook.Components;
 using TravelBook.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents()
-    .AddAuthenticationStateSerialization();
-
-builder.Services.AddRazorPages();
-
-var useEntraID = builder.Configuration["UseEntraID"];
-
-if (!string.IsNullOrEmpty(useEntraID) &&
-    useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
+async Task ReadSecretFromKeyVault()
 {
     var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
     if (!string.IsNullOrEmpty(keyVaultUri))
@@ -42,7 +30,7 @@ if (!string.IsNullOrEmpty(useEntraID) &&
         var clientSecretName = builder.Configuration["KeyVault:AzureAdClientSecret"];
         if (!string.IsNullOrEmpty(clientSecretName))
         {
-            KeyVaultSecret clientSecret = secretClient.GetSecret(clientSecretName);
+            KeyVaultSecret clientSecret = await secretClient.GetSecretAsync(clientSecretName);
             string clientSecretValue = clientSecret.Value
                 ?? throw new InvalidOperationException("Azure AD client secret not found in KeyVault.");
 
@@ -52,7 +40,21 @@ if (!string.IsNullOrEmpty(useEntraID) &&
     }
 }
 
-var scopesToRequest = new string[] { "profile", "user.read", "user.readwrite.all", "device.read.all" };
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents()
+    .AddInteractiveWebAssemblyComponents()
+    .AddAuthenticationStateSerialization();
+
+builder.Services.AddRazorPages();
+
+var useEntraID = builder.Configuration["UseEntraID"];
+
+if (!string.IsNullOrEmpty(useEntraID) &&
+    useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
+    await ReadSecretFromKeyVault();
+
+var scopesToRequest = builder.Configuration["MicrosoftGraph:Scopes"]?.Split(",", StringSplitOptions.TrimEntries);
 
 builder.Services
     .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
@@ -71,33 +73,13 @@ builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.Authentic
         var existingRedirectHandler = options.Events.OnRedirectToIdentityProvider;
         var existingLogoutHandler = options.Events.OnRedirectToIdentityProviderForSignOut;
 
-        //options.Events.OnTokenValidated = ctx =>
-        //{
-        //    if (ctx?.Principal is null)
-        //        throw new Exception($"Principal is null");
-
-        //    var principal = ctx.Principal;
-
-        //    var neededClaims = new[] { "preferred_username", "oid", "tid", "login_hint" };
-
-        //    foreach (var claim in neededClaims)
-        //    {
-        //        if (!principal.HasClaim(c => c.Type == claim))
-        //            throw new Exception($"Missing claim: {claim}");
-        //    }
-
-        //    return Task.CompletedTask;
-        //};
-
         options.Events.OnRedirectToIdentityProvider = context =>
         {
             existingRedirectHandler?.Invoke(context);
 
-            var login_hint = context.HttpContext.User.Claims.Where(c => c.Type == "login_hint").FirstOrDefault();
+            var login_hint = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "login_hint");
             if (login_hint != null)
-            {
                 context.ProtocolMessage.SetParameter("login_hint", login_hint.Value);
-            }
 
             return Task.CompletedTask;
         };
@@ -108,15 +90,11 @@ builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.Authentic
 
             var idToken = await context.HttpContext.GetTokenAsync("id_token");
             if (!string.IsNullOrEmpty(idToken))
-            {
                 context.ProtocolMessage.IdTokenHint = idToken;
-            }
 
-            var login_hint = context.HttpContext.User.Claims.Where(c => c.Type == "login_hint").FirstOrDefault();
+            var login_hint = context.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "login_hint");
             if (login_hint != null)
-            {
                 context.ProtocolMessage.SetParameter("logout_hint",  login_hint.Value);
-            }
 
             context.Properties.RedirectUri = builder.Configuration["AzureAd:SignedOutCallbackPath"];
             context.ProtocolMessage.PostLogoutRedirectUri = builder.Configuration["AzureAd:SignedOutRedirectUri"];
@@ -134,13 +112,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     });
 
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/home/data-protection"))
+    .PersistKeysToFileSystem(new DirectoryInfo("/data-protection"))
     .SetApplicationName("TravelBook");
 
 builder.Services.AddAuthorizationBuilder().SetFallbackPolicy(null);
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.LoadClientServerServices();
 
 
 // Pipeline
@@ -183,8 +163,7 @@ app.MapRazorComponents<App>()
 
 app.MapControllers();
 app.MapAuthenticationService();
-//app.MapUserService(builder.Configuration["AzureAd:TenantId"], builder.Configuration["AzureAd:ClientId"], builder.Configuration["AzureAd:ClientSecret"]);
 app.MapRazorPages();
 
 
-app.Run();
+await app.RunAsync();
