@@ -63,7 +63,7 @@ namespace TravelBook.Client.Services
             }
 
             var error = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-            throw new Exception(error?["Error"] ?? response.ReasonPhrase);
+            throw new ArgumentNullException(error?["Error"] ?? response.ReasonPhrase);
         }
     }
 }

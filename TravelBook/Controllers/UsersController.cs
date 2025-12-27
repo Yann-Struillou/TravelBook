@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Identity.Web;
-using Microsoft.Kiota.Abstractions;
 using TravelBookDto.Users;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -29,7 +27,7 @@ namespace TravelBook.Controllers
             _defaultDomain = configuration["AzureAd:Domain"] ?? "";
             if (string.IsNullOrWhiteSpace(_defaultDomain))
             {
-                throw new ArgumentException("Le domaine Azure AD n'est pas configuré dans appsettings.json");
+                throw new ArgumentException("Azure domain is not set in appsettings.json");
             }
         }
 
@@ -58,11 +56,11 @@ namespace TravelBook.Controllers
             }
             catch (ServiceException ex)
             {
-                throw new Exception($"Graph API error: {ex.Message}", ex);
+                throw new ArgumentException($"Graph API error: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
-                throw new Exception($"TravelBook API error: {ex.Message}", ex);
+                throw new ArgumentException($"TravelBook API error: {ex.Message}", ex);
             }
         }
 
@@ -91,11 +89,11 @@ namespace TravelBook.Controllers
             }
             catch (ServiceException ex)
             {
-                throw new Exception($"Graph API error: {ex.Message}", ex);
+                throw new ArgumentException($"Graph API error: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
-                throw new Exception($"TravelBook API error: {ex.Message}", ex);
+                throw new ArgumentException($"TravelBook API error: {ex.Message}", ex);
             }
         }
 
@@ -106,7 +104,7 @@ namespace TravelBook.Controllers
                 || string.IsNullOrWhiteSpace(createUserDto.DisplayName)
                 || string.IsNullOrWhiteSpace(createUserDto.MailNickName))
             {
-                return BadRequest("DisplayName et MailNickName sont obligatoires.");
+                return BadRequest("DisplayName et MailNickName are mandatory.");
             }
 
             // Construction du UserPrincipalName avec le domaine configuré
@@ -130,12 +128,12 @@ namespace TravelBook.Controllers
                 var createdUser = await _graphServiceClient.Users.PostAsync(newUser);
 
                 if (createdUser == null)
-                    return StatusCode(500, "La création de l'utilisateur a échoué : aucun utilisateur retourné.");
+                    return StatusCode(500, "The user registration failed.");
 
-                Console.WriteLine($"Utilisateur créé : {createdUser.DisplayName}");
+                Console.WriteLine($"User created: {createdUser.DisplayName}");
 
                 return Ok(new CreateUserResponseDto(
-                    "Utilisateur créé avec succès",
+                    "User created successfully",
                     createdUser.Id,
                     createdUser.UserPrincipalName,
                     createdUser.DisplayName,
@@ -149,21 +147,9 @@ namespace TravelBook.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erreur inattendue : {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
                 return StatusCode(500, new { error = ex.Message });
             }
-        }
-
-        // PUT api/<ValuesController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<ValuesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

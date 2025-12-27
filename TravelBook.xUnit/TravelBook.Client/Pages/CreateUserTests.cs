@@ -6,7 +6,6 @@ using TravelBook.Client.Pages;
 using TravelBook.Client.Services;
 using TravelBook.Client.ViewModels.Users;
 using TravelBookDto.Users;
-using Xunit;
 
 namespace TravelBook.xUnit.TravelBook.Client.Pages
 {
@@ -58,7 +57,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             // Arrange
             var expectedUser = new CreateUserResponseDto
             (
-                Message : "Utilisateur créé avec succès",
+                Message : "Message",
                 UserId : Guid.NewGuid().ToString(),
                 UserPrincipalName : "test@example.com",
                 UserDisplayName : "Test User",
@@ -93,7 +92,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             )), Times.Once);
 
             var resultMessage = GetResultMessage(cut.Instance);
-            Assert.Contains("Utilisateur créé", resultMessage);
+            Assert.Contains("User created:", resultMessage);
             Assert.Contains("Test User", resultMessage);
             Assert.Contains("test@example.com", resultMessage);
         }
@@ -104,7 +103,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             // Arrange
             var expectedUser = new CreateUserResponseDto
             (
-                Message: "Utilisateur créé avec succès",
+                Message: "Message",
                 UserId: Guid.NewGuid().ToString(),
                 UserPrincipalName: "test@example.com",
                 UserDisplayName: "Test User",
@@ -142,7 +141,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
         public async Task HandleValidSubmit_DisplaysErrorMessage_WhenServiceThrowsException()
         {
             // Arrange
-            var exceptionMessage = "Une erreur est survenue";
+            var exceptionMessage = "Error";
             _mockUsersService
                 .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
                 .ThrowsAsync(new Exception(exceptionMessage));
@@ -164,7 +163,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
 
             // Assert
             var resultMessage = GetResultMessage(cut.Instance);
-            Assert.Contains("Erreur", resultMessage);
+            Assert.Contains("Error", resultMessage);
             Assert.Contains(exceptionMessage, resultMessage);
         }
 
@@ -174,7 +173,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
             // Arrange
             _mockUsersService
                 .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
-                .ThrowsAsync(new Exception("Erreur"));
+                .ThrowsAsync(new Exception("Error"));
 
             var cut = _context.Render<CreateUser>();
 
@@ -225,7 +224,7 @@ namespace TravelBook.xUnit.TravelBook.Client.Pages
 
             // Assert
             var resultMessage = GetResultMessage(cut.Instance);
-            Assert.Contains("Utilisateur créé", resultMessage);
+            Assert.Contains("User created", resultMessage);
         }
 
         [Fact]
