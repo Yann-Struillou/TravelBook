@@ -59,8 +59,11 @@ jobs:
         run: dotnet build --no-restore
       
       - name: Test with coverage
-        run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage.opencover.xml
-      
+        run: |
+          dotnet test --no-build \
+          --collect:"XPlat Code Coverage" \
+          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
       - name: List coverage files (debug)
         run: find . -name "coverage.opencover.xml" -type f
       
