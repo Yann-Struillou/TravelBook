@@ -3,6 +3,7 @@
     <File Path=".github/workflows/BlazorWebAppEntra.yml" />
     <File Path=".github/workflows/deploy.yml" />
     <File Path=".github/workflows/sonarcloud.yml" />
+    <File Path=".runsettings" />
     <File Path="Dockerfile" />
   </Folder>
   <Project Path="TravelBook.Client/TravelBook.Client.csproj" />
