@@ -71,11 +71,11 @@ namespace TravelBook.xUnit.TravelBook.Services
             var tokenAcquisitionMock = new Mock<ITokenAcquisition>();
             tokenAcquisitionMock
                 .Setup(t => t.GetAccessTokenForUserAsync(
-                    scopes : It.IsAny<IEnumerable<string>>(),
+                    It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    user: It.IsAny<ClaimsPrincipal?>(), 
+                    It.IsAny<ClaimsPrincipal?>(),
                     It.IsAny<TokenAcquisitionOptions?>()))
                 .ThrowsAsync(challengeException);
 
@@ -106,23 +106,26 @@ namespace TravelBook.xUnit.TravelBook.Services
         }
 
         [Fact]
-        public async Task ValidatePrincipal_DoesNotReject_For_Other_MsalErrors()
+        public async Task ValidatePrincipal_Throws_For_Other_MsalErrors()
         {
-            var msalException = new MsalUiRequiredException("some_other_error", "Other error");
+            // Arrange
+            var msalException =
+                new MsalUiRequiredException("some_other_error", "Other error");
 
             var challengeException =
                 new MicrosoftIdentityWebChallengeUserException(
                     msalException,
-                    ["profile"]);
+                    new[] { "profile" });
 
-            var tokenAcquisitionMock = new Mock<ITokenAcquisition>();
+            var tokenAcquisitionMock = new Mock<ITokenAcquisition>(MockBehavior.Strict);
+
             tokenAcquisitionMock
                 .Setup(t => t.GetAccessTokenForUserAsync(
-                    scopes: It.IsAny<IEnumerable<string>>(),
+                    It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    user: It.IsAny<ClaimsPrincipal?>(),
+                    It.IsAny<ClaimsPrincipal?>(),
                     It.IsAny<TokenAcquisitionOptions?>()))
                 .ThrowsAsync(challengeException);
 
@@ -134,21 +137,74 @@ namespace TravelBook.xUnit.TravelBook.Services
                 RequestServices = services.BuildServiceProvider()
             };
 
-            var principal = new ClaimsPrincipal(new ClaimsIdentity("Cookies"));
-            var properties = new AuthenticationProperties();
-            var ticket = new AuthenticationTicket(principal, properties, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(
+                new ClaimsIdentity("Cookies"));
+
+            var ticket = new AuthenticationTicket(
+                principal,
+                new AuthenticationProperties(),
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
             var context = new CookieValidatePrincipalContext(
                 httpContext,
-                new AuthenticationScheme("Cookies", null, typeof(CookieAuthenticationHandler)),
+                new AuthenticationScheme(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null,
+                    typeof(CookieAuthenticationHandler)),
                 new CookieAuthenticationOptions(),
                 ticket);
 
             var events = new TravelBookCookieAuthenticationEvents();
 
-            // Act
+            // Act & Assert
+            await Assert.ThrowsAsync<MicrosoftIdentityWebChallengeUserException>(
+                () => events.ValidatePrincipal(context));
+        }
+
+        [Fact]
+        public async Task ValidatePrincipal_DoesNothing_When_TokenIsRetrieved()
+        {
+            var tokenAcquisitionMock = new Mock<ITokenAcquisition>();
+
+            tokenAcquisitionMock
+                .Setup(t => t.GetAccessTokenForUserAsync(
+                    It.IsAny<IEnumerable<string>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ClaimsPrincipal?>(),
+                    It.IsAny<TokenAcquisitionOptions?>()))
+                .ReturnsAsync("fake-token");
+
+            var services = new ServiceCollection();
+            services.AddSingleton(tokenAcquisitionMock.Object);
+
+            var httpContext = new DefaultHttpContext
+            {
+                RequestServices = services.BuildServiceProvider()
+            };
+
+            var principal = new ClaimsPrincipal(
+                new ClaimsIdentity("Cookies"));
+
+            var ticket = new AuthenticationTicket(
+                principal,
+                new AuthenticationProperties(),
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var context = new CookieValidatePrincipalContext(
+                httpContext,
+                new AuthenticationScheme(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    null,
+                    typeof(CookieAuthenticationHandler)),
+                new CookieAuthenticationOptions(),
+                ticket);
+
+            var events = new TravelBookCookieAuthenticationEvents();
+
             await events.ValidatePrincipal(context);
 
-            // Assert
             Assert.NotNull(context.Principal);
         }
     }
