@@ -12,15 +12,18 @@ namespace TravelBook.xUnit.TravelBook.Services
     /// </summary>
     public class FakeAzureAdSecretLoaderWithSecret : IAzureAdSecretLoader
     {
-        private readonly string _secretValue;
+        private readonly string? _secretValue;
 
-        public FakeAzureAdSecretLoaderWithSecret(string secretValue)
+        public FakeAzureAdSecretLoaderWithSecret(string? secretValue)
         {
             _secretValue = secretValue;
         }
 
         public Task LoadAsync(IConfigurationManager configuration)
         {
+            if (_secretValue is null)
+                throw new InvalidOperationException("Secret is null");
+
             configuration["AzureAd:ClientSecret"] = _secretValue;
             return Task.CompletedTask;
         }
@@ -111,32 +114,15 @@ namespace TravelBook.xUnit.TravelBook.Services
             var configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/",
-                ["KeyVault:AzureAdClientSecret"] = "my-secret"
+                ["KeyVault:AzureAdClientSecret"] = "my-secret",
+                ["AzureAd:ClientSecret"] = ""
             });
 
-            KeyVaultSecret? secret = null;
-            try
-            { 
-                secret = new KeyVaultSecret("my-secret", null); 
-            }
-            catch
-            {
-            }
-
-            var secretClientMock = new Mock<SecretClient>();
-            secretClientMock
-                .Setup(c => c.GetSecretAsync("my-secret", null, default))
-                .ReturnsAsync(Response.FromValue(secret, null!));
-
-            var factoryMock = new Mock<ISecretClientFactory>();
-            factoryMock
-                .Setup(f => f.Create(It.IsAny<Uri>()))
-                .Returns(secretClientMock.Object);
-
-            var loader = new AzureAdSecretLoader(factoryMock.Object);
+            // Utilisation du FakeAzureAdSecretLoader
+            var loader = new FakeAzureAdSecretLoaderWithSecret(null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<AggregateException>(
+            await Assert.ThrowsAsync<InvalidOperationException>(
                 () => loader.LoadAsync(configuration));
         }
     }

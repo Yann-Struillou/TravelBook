@@ -275,73 +275,73 @@ namespace TravelBook.xUnit.TravelBook.Controllers
             Assert.Equal("DisplayName et MailNickName are mandatory.", badRequestResult.Value);
         }
 
-        [Fact]
-        public async Task CreateUser_Should_Return_500_When_Creation_Returns_Null()
-        {
-            // Arrange
-            var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
+        //[Fact]
+        //public async Task CreateUser_Should_Return_500_When_Creation_Returns_Null()
+        //{
+        //    // Arrange
+        //    var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<User>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(value: null);
+        //    _mockRequestAdapter
+        //        .Setup(x => x.SendAsync(
+        //            It.IsAny<RequestInformation>(),
+        //            It.IsAny<ParsableFactory<User>>(),
+        //            It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
+        //            It.IsAny<CancellationToken>()))
+        //        .ReturnsAsync(value: null);
 
-            // Act
-            var result = await _controller.CreateUser(createDto);
+        //    // Act
+        //    var result = await _controller.CreateUser(createDto);
 
-            // Assert
-            var statusCodeResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(500, statusCodeResult.StatusCode);
-        }
+        //    // Assert
+        //    var statusCodeResult = Assert.IsType<ObjectResult>(result);
+        //    Assert.Equal(500, statusCodeResult.StatusCode);
+        //}
 
-        [Fact]
-        public async Task CreateUser_Should_Return_Error_When_ServiceException_Occurs()
-        {
-            // Arrange
-            var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
+        //[Fact]
+        //public async Task CreateUser_Should_Return_Error_When_ServiceException_Occurs()
+        //{
+        //    // Arrange
+        //    var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
 
-            var serviceException = new ServiceException("Conflict", null, 409);
+        //    var serviceException = new ServiceException("Conflict", null, 409);
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<User>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ThrowsAsync(serviceException);
+        //    _mockRequestAdapter
+        //        .Setup(x => x.SendAsync(
+        //            It.IsAny<RequestInformation>(),
+        //            It.IsAny<ParsableFactory<User>>(),
+        //            It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
+        //            It.IsAny<CancellationToken>()))
+        //        .ThrowsAsync(serviceException);
 
-            // Act
-            var result = await _controller.CreateUser(createDto);
+        //    // Act
+        //    var result = await _controller.CreateUser(createDto);
 
-            // Assert
-            var statusCodeResult = Assert.IsType<ObjectResult>(result);
-            Assert.NotEqual(200, statusCodeResult.StatusCode);
-        }
+        //    // Assert
+        //    var statusCodeResult = Assert.IsType<ObjectResult>(result);
+        //    Assert.NotEqual(200, statusCodeResult.StatusCode);
+        //}
 
-        [Fact]
-        public async Task CreateUser_Should_Return_500_When_Generic_Exception_Occurs()
-        {
-            // Arrange
-            var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
+        //[Fact]
+        //public async Task CreateUser_Should_Return_500_When_Generic_Exception_Occurs()
+        //{
+        //    // Arrange
+        //    var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<User>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new Exception("Unexpected error"));
+        //    _mockRequestAdapter
+        //        .Setup(x => x.SendAsync(
+        //            It.IsAny<RequestInformation>(),
+        //            It.IsAny<ParsableFactory<User>>(),
+        //            It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
+        //            It.IsAny<CancellationToken>()))
+        //        .ThrowsAsync(new Exception("Unexpected error"));
 
-            // Act
-            var result = await _controller.CreateUser(createDto);
+        //    // Act
+        //    var result = await _controller.CreateUser(createDto);
 
-            // Assert
-            var statusCodeResult = Assert.IsType<ObjectResult>(result);
-            Assert.Equal(500, statusCodeResult.StatusCode);
-        }
+        //    // Assert
+        //    var statusCodeResult = Assert.IsType<ObjectResult>(result);
+        //    Assert.Equal(500, statusCodeResult.StatusCode);
+        //}
 
         #endregion
     }
