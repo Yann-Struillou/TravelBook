@@ -207,5 +207,32 @@ namespace TravelBook.xUnit.TravelBook.Services
             Assert.NotNull(result);
             Assert.Equal($"API Error: {apiErrorMessage}", result.Message);
         }
+
+        [Fact]
+        public async Task GetUserByIdAsync_Returns_ApplicationError_When_HttpClient_Throws()
+        {
+            // Arrange
+            const string exceptionMessage = "Network failure";
+
+            var handler = new FakeHttpMessageHandler(_ =>
+                throw new HttpRequestException(exceptionMessage));
+
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/")
+            };
+
+            var service = new UsersService(httpClient);
+
+            // Act
+            var result = await service.GetUserByIdAsync(
+                new GetUserByIdDto("any-id"));
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal($"Application error: {exceptionMessage}", result.Message);
+            Assert.Null(result.UserId);
+            Assert.Null(result.DisplayName);
+        }
     }
 }
