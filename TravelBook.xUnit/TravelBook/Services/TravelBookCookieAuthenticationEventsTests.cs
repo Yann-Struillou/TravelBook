@@ -118,12 +118,12 @@ namespace TravelBook.xUnit.TravelBook.Services
             var tokenAcquisitionMock = new Mock<ITokenAcquisition>();
             tokenAcquisitionMock
                 .Setup(t => t.GetAccessTokenForUserAsync(
-                    It.IsAny<IEnumerable<string>>(),
+                    scopes: It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<ClaimsPrincipal?>(),
-                    null))
+                    user: It.IsAny<ClaimsPrincipal?>(),
+                    It.IsAny<TokenAcquisitionOptions?>()))
                 .ThrowsAsync(challengeException);
 
             var services = new ServiceCollection();
