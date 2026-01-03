@@ -2,28 +2,20 @@
 
 namespace TravelBook.Services
 {
-    public class AzureAdSecretLoader(ISecretClientFactory secretClientFactory) : IAzureAdSecretLoader
+    public class AzureAdSecretLoader() : IAzureAdSecretLoader
     {
         public async Task LoadAsync(IConfigurationManager configurationManager)
         {
             ArgumentNullException.ThrowIfNull(configurationManager);
 
-            var keyVaultUri = configurationManager["KeyVault:VaultUri"];
-            if (string.IsNullOrEmpty(keyVaultUri))
+            var vaultUri = configurationManager["KeyVault:VaultUri"];
+            var secretName = configurationManager["KeyVault:AzureAdClientSecret"];
+
+            if (string.IsNullOrEmpty(vaultUri) || string.IsNullOrEmpty(secretName))
                 return;
 
-            configurationManager.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
-
-            var clientSecretName = configurationManager["KeyVault:AzureAdClientSecret"];
-            if (string.IsNullOrEmpty(clientSecretName))
-                return;
-
-            var secretClient = secretClientFactory.Create(new Uri(keyVaultUri));
-
-            var secret = await secretClient.GetSecretAsync(clientSecretName);
-
-            configurationManager["AzureAd:ClientSecret"] =
-                secret.Value.Value ?? throw new InvalidOperationException();
+            configurationManager["AzureAd:ClientSecret"] 
+                = await new AzureKeyVaultSecretReader().ReadSecretAsync(vaultUri, secretName) ?? throw new InvalidOperationException();
         }
     }
 }
