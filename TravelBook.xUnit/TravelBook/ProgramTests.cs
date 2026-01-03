@@ -20,6 +20,7 @@ namespace TravelBook.xUnit.TravelBook
         public async Task LoadAsync(IConfigurationManager configurationManager)
         {
             ArgumentNullException.ThrowIfNull(configurationManager);
+            configurationManager["AzureAd:ClientSecret"] = "fake-secret";
         }
     }
 
@@ -44,18 +45,18 @@ namespace TravelBook.xUnit.TravelBook
                     };
 
                     config.AddInMemoryCollection(settings);
+                });
 
-                    builder.ConfigureServices(services =>
-                    {
-                        // Supprime l'enregistrement réel si existant
-                        var descriptor = services.SingleOrDefault(
-                            d => d.ServiceType == typeof(IAzureAdSecretLoader));
-                        if (descriptor != null)
-                            services.Remove(descriptor);
+                builder.ConfigureServices(services =>
+                {
+                    // Supprime l'enregistrement réel si existant
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(IAzureAdSecretLoader));
+                    if (descriptor != null)
+                        services.Remove(descriptor);
 
-                        // Ajoute le fake loader pour éviter les appels réseau
-                        services.AddSingleton<IAzureAdSecretLoader, FakeAzureAdSecretLoader>();
-                    });
+                    // Ajoute le fake loader pour éviter les appels réseau
+                    services.AddSingleton<IAzureAdSecretLoader, FakeAzureAdSecretLoader>();
                 });
             });
         }
