@@ -234,5 +234,28 @@ namespace TravelBook.xUnit.TravelBook.Services
             Assert.Null(result.UserId);
             Assert.Null(result.DisplayName);
         }
+
+        [Fact]
+        public async Task GetUserByPrincipalAsync_Returns_ApplicationError_When_HttpClient_Throws()
+        {
+            const string exceptionMessage = "Timeout";
+
+            var handler = new FakeHttpMessageHandler(_ =>
+                throw new TaskCanceledException(exceptionMessage));
+
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/")
+            };
+
+            var service = new UsersService(httpClient);
+
+            var result = await service.GetUserByPrincipalAsync(
+                new GetUserByPrincipalNameDto("test@domain.com"));
+
+            Assert.NotNull(result);
+            Assert.Equal($"Application error: {exceptionMessage}", result.Message);
+        }
+
     }
 }
