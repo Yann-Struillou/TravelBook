@@ -12,19 +12,25 @@ namespace TravelBook.xUnit.TravelBook.Services
     /// </summary>
     public class FakeAzureAdSecretLoaderWithSecret : IAzureAdSecretLoader
     {
+        private readonly string? _secretName;
         private readonly string? _secretValue;
 
-        public FakeAzureAdSecretLoaderWithSecret(string? secretValue)
+        public FakeAzureAdSecretLoaderWithSecret(string? secretName, string? secretValue)
         {
+            _secretName = secretName;
             _secretValue = secretValue;
         }
 
         public Task LoadAsync(IConfigurationManager configuration)
         {
+            if (string.IsNullOrEmpty(_secretName))
+                return Task.CompletedTask;
+
             if (_secretValue is null)
                 throw new InvalidOperationException("Secret is null");
 
             configuration["AzureAd:ClientSecret"] = _secretValue;
+
             return Task.CompletedTask;
         }
     }
@@ -98,7 +104,7 @@ namespace TravelBook.xUnit.TravelBook.Services
             configuration["AzureAd:ClientSecret"] = "";
 
             // Utilisation du FakeAzureAdSecretLoader
-            var loader = new FakeAzureAdSecretLoaderWithSecret("super-secret");
+            var loader = new FakeAzureAdSecretLoaderWithSecret(configuration["KeyVault:AzureAdClientSecret"], "super-secret");
 
             // Act
             await loader.LoadAsync(configuration);
@@ -119,7 +125,7 @@ namespace TravelBook.xUnit.TravelBook.Services
             });
 
             // Utilisation du FakeAzureAdSecretLoader
-            var loader = new FakeAzureAdSecretLoaderWithSecret(null);
+            var loader = new FakeAzureAdSecretLoaderWithSecret(configuration["KeyVault:AzureAdClientSecret"], null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -135,7 +141,7 @@ namespace TravelBook.xUnit.TravelBook.Services
                 // PAS de KeyVault:AzureAdClientSecret
             });
 
-            var loader = new FakeAzureAdSecretLoaderWithSecret(null);
+            var loader = new FakeAzureAdSecretLoaderWithSecret(configuration["KeyVault:AzureAdClientSecret"], null);
 
             await loader.LoadAsync(configuration);
 
@@ -151,7 +157,7 @@ namespace TravelBook.xUnit.TravelBook.Services
                 ["KeyVault:AzureAdClientSecret"] = ""
             });
 
-            var loader = new FakeAzureAdSecretLoaderWithSecret("");
+            var loader = new FakeAzureAdSecretLoaderWithSecret("", null);
 
             await loader.LoadAsync(configuration);
 
