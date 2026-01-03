@@ -48,7 +48,7 @@ namespace TravelBook.xUnit.TravelBook.Services
         public async Task LoadAsync_Returns_When_KeyVaultUri_IsMissing()
         {
             // Arrange
-            var configuration = CreateConfiguration(new());
+            var configuration = CreateConfiguration([]);
             var factoryMock = new Mock<ISecretClientFactory>();
 
             var loader = new AzureAdSecretLoader(factoryMock.Object);
@@ -124,6 +124,38 @@ namespace TravelBook.xUnit.TravelBook.Services
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => loader.LoadAsync(configuration));
+        }
+
+        [Fact]
+        public async Task LoadAsync_Returns_When_ClientSecretName_Is_Null()
+        {
+            var configuration = CreateConfiguration(new()
+            {
+                ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/"
+                // PAS de KeyVault:AzureAdClientSecret
+            });
+
+            var loader = new FakeAzureAdSecretLoaderWithSecret(null);
+
+            await loader.LoadAsync(configuration);
+
+            Assert.Null(configuration["AzureAd:ClientSecret"]);
+        }
+
+        [Fact]
+        public async Task LoadAsync_Returns_When_ClientSecretName_Is_Empty()
+        {
+            var configuration = CreateConfiguration(new()
+            {
+                ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/",
+                ["KeyVault:AzureAdClientSecret"] = ""
+            });
+
+            var loader = new FakeAzureAdSecretLoaderWithSecret("");
+
+            await loader.LoadAsync(configuration);
+
+            Assert.Null(configuration["AzureAd:ClientSecret"]);
         }
     }
 }
