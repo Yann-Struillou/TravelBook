@@ -1,14 +1,28 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using TravelBook.Client.Services;
-using System.Net;
+﻿using Azure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using TravelBook.Client.Services;
+using TravelBook.Services;
 
 namespace TravelBook.xUnit.TravelBook
 {
+    public class FakeAzureAdSecretLoader : IAzureAdSecretLoader
+    {
+        /// <summary>
+        /// Simule un secret sans toucher Azure
+        /// </summary>
+        /// <param name="configurationManager"></param>
+        /// <returns></returns>
+        public async Task LoadAsync(IConfigurationManager configurationManager)
+        {
+            ArgumentNullException.ThrowIfNull(configurationManager);
+        }
+    }
+
     public class ProgramTests : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly WebApplicationFactory<Program> _factory;
@@ -30,6 +44,18 @@ namespace TravelBook.xUnit.TravelBook
                     };
 
                     config.AddInMemoryCollection(settings);
+
+                    builder.ConfigureServices(services =>
+                    {
+                        // Supprime l'enregistrement réel si existant
+                        var descriptor = services.SingleOrDefault(
+                            d => d.ServiceType == typeof(IAzureAdSecretLoader));
+                        if (descriptor != null)
+                            services.Remove(descriptor);
+
+                        // Ajoute le fake loader pour éviter les appels réseau
+                        services.AddSingleton<IAzureAdSecretLoader, FakeAzureAdSecretLoader>();
+                    });
                 });
             });
         }
@@ -45,6 +71,7 @@ namespace TravelBook.xUnit.TravelBook
             var response = await client.GetAsync("/");
 
             Assert.NotNull(response);
+            Assert.True(response.IsSuccessStatusCode);
         }
 
         // --------------------------------------------------------------------

@@ -1,5 +1,3 @@
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -14,31 +12,6 @@ using TravelBook.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-async Task ReadSecretFromKeyVault()
-{
-    var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
-    if (!string.IsNullOrEmpty(keyVaultUri))
-    {
-        // Ajout de KeyVault � la configuration
-        builder.Configuration.AddAzureKeyVault(
-            new Uri(keyVaultUri),
-            new DefaultAzureCredential());
-
-        var secretClient = new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
-
-        // Lecture du secret Azure AD
-        var clientSecretName = builder.Configuration["KeyVault:AzureAdClientSecret"];
-        if (!string.IsNullOrEmpty(clientSecretName))
-        {
-            KeyVaultSecret clientSecret = await secretClient.GetSecretAsync(clientSecretName);
-            string clientSecretValue = clientSecret.Value
-                ?? throw new InvalidOperationException("Azure AD client secret not found in KeyVault.");
-
-            // Injecte la valeur r�elle dans la configuration avant l'auth
-            builder.Configuration["AzureAd:ClientSecret"] = clientSecretValue;
-        }
-    }
-}
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -47,12 +20,6 @@ builder.Services.AddRazorComponents()
     .AddAuthenticationStateSerialization();
 
 builder.Services.AddRazorPages();
-
-var useEntraID = builder.Configuration["UseEntraID"];
-
-if (!string.IsNullOrEmpty(useEntraID) &&
-    useEntraID.Equals("True", StringComparison.InvariantCultureIgnoreCase))
-    await ReadSecretFromKeyVault();
 
 var scopesToRequest = builder.Configuration["MicrosoftGraph:Scopes"]?.Split(",", StringSplitOptions.TrimEntries);
 
@@ -119,9 +86,14 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.LoadClientServerServices();
 
+builder.Services.AddSingleton<ISecretClientFactory, SecretClientFactory>();
+builder.Services.AddTransient<IAzureAdSecretLoader, AzureAdSecretLoader>();
 
 // Pipeline
 var app = builder.Build();
+
+// Load Azure AD secrets from Key Vault
+await app.Services.GetRequiredService<IAzureAdSecretLoader>().LoadAsync(builder.Configuration);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
