@@ -152,5 +152,60 @@ namespace TravelBook.xUnit.TravelBook.Services
             await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 service.CreateUserAsync(new CreateUserDto("user@contoso.com","User", "user")));
         }
+
+        [Fact]
+        public async Task GetUserByIdAsync_Returns_ApiError_With_ErrorMessage_From_Response_Body()
+        {
+            // Arrange
+            const string apiErrorMessage = "User not found";
+
+            var handler = new FakeHttpMessageHandler(_ =>
+                new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(apiErrorMessage)
+                });
+
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/")
+            };
+
+            var service = new UsersService(httpClient);
+
+            // Act
+            var result = await service.GetUserByIdAsync(
+                new GetUserByIdDto("invalid-id"));
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal($"API Error: {apiErrorMessage}", result.Message);
+            Assert.Null(result.UserId);
+            Assert.Null(result.UserPrincipalName);
+        }
+
+        [Fact]
+        public async Task GetUserByPrincipalAsync_Returns_ApiError_With_ErrorMessage_From_Response_Body()
+        {
+            const string apiErrorMessage = "Invalid principal name";
+
+            var handler = new FakeHttpMessageHandler(_ =>
+                new HttpResponseMessage(HttpStatusCode.Forbidden)
+                {
+                    Content = new StringContent(apiErrorMessage)
+                });
+
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/")
+            };
+
+            var service = new UsersService(httpClient);
+
+            var result = await service.GetUserByPrincipalAsync(
+                new GetUserByPrincipalNameDto("invalid@domain.com"));
+
+            Assert.NotNull(result);
+            Assert.Equal($"API Error: {apiErrorMessage}", result.Message);
+        }
     }
 }
