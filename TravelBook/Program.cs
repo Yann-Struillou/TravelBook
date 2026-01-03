@@ -93,7 +93,8 @@ builder.Services.AddTransient<IAzureAdSecretLoader, AzureAdSecretLoader>();
 var app = builder.Build();
 
 // Load Azure AD secrets from Key Vault
-await app.Services.GetRequiredService<IAzureAdSecretLoader>().LoadAsync(builder.Configuration);
+if (!builder.Environment.IsEnvironment("Test"))
+    await app.Services.GetRequiredService<IAzureAdSecretLoader>().LoadAsync(builder.Configuration);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
