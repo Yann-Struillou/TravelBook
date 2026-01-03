@@ -65,7 +65,14 @@ builder.Services
 
 builder.Services.Configure<CookieAuthenticationOptions>(
     CookieAuthenticationDefaults.AuthenticationScheme,
-    options => options.Events = new TravelBookCookieAuthenticationEvents());
+    options => {
+        options.Cookie.Name = ".TravelBook.Auth";        // custom name
+        options.Cookie.SameSite = SameSiteMode.None;      // better for OIDC
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.Events = new TravelBookCookieAuthenticationEvents();
+    });
 
 //Configure OpenID Connect events
 builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
@@ -99,16 +106,6 @@ builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.Authentic
             context.Properties.RedirectUri = builder.Configuration["AzureAd:SignedOutCallbackPath"];
             context.ProtocolMessage.PostLogoutRedirectUri = builder.Configuration["AzureAd:SignedOutRedirectUri"];
         };
-    });
-
-builder.Services.ConfigureApplicationCookie(options =>
-    {
-        options.Cookie.Name = ".TravelBook.Auth";        // Nom personnalis�
-        options.Cookie.SameSite = SameSiteMode.None;      // Recommand� pour OIDC
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-
-        options.SlidingExpiration = true;
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
 builder.Services.AddDataProtection()

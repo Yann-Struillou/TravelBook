@@ -1,83 +1,191 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TravelBook.Client.Services;
+using System.Net;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace TravelBook.Tests;
-
-public class LoadClientServerServicesTests
+namespace TravelBook.xUnit.TravelBook
 {
-    [Fact]
-    public void LoadClientServerServices_RegistersIUsersService()
+    public class ProgramTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        // Arrange
-        var services = new ServiceCollection();
+        private readonly WebApplicationFactory<Program> _factory;
 
-        // Act
-        services.LoadClientServerServices();
+        public ProgramTests(WebApplicationFactory<Program> factory)
+        {
+            _factory = factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((context, config) =>
+                {
+                    var settings = new Dictionary<string, string?>
+                    {
+                        ["UseEntraID"] = "False", // évite KeyVault
+                        ["AzureAd:Instance"] = "https://login.microsoftonline.com/",
+                        ["AzureAd:TenantId"] = "fake-tenant",
+                        ["AzureAd:ClientId"] = "fake-client-id",
+                        ["AzureAd:ClientSecret"] = "fake-secret",
+                        ["AzureAd:CallbackPath"] = "/signin-oidc"
+                    };
 
-        // Assert
-        var usersServiceDescriptor = services.FirstOrDefault(s =>
-            s.ServiceType == typeof(IUsersService));
+                    config.AddInMemoryCollection(settings);
+                });
+            });
+        }
 
-        Assert.NotNull(usersServiceDescriptor);
-        Assert.Equal(typeof(UsersService), usersServiceDescriptor.ImplementationType);
-    }
+        // --------------------------------------------------------------------
+        // 1. L'application démarre correctement
+        // --------------------------------------------------------------------
+        [Fact]
+        public async Task Application_Starts_Successfully()
+        {
+            var client = _factory.CreateClient();
 
-    [Fact]
-    public void LoadClientServerServices_RegistersUsersServiceWithScopedLifetime()
-    {
-        // Arrange
-        var services = new ServiceCollection();
+            var response = await client.GetAsync("/");
 
-        // Act
-        services.LoadClientServerServices();
+            Assert.NotNull(response);
+        }
 
-        // Assert
-        var usersServiceDescriptor = services.FirstOrDefault(s =>
-            s.ServiceType == typeof(IUsersService));
+        // --------------------------------------------------------------------
+        // 2. Le service Authentication est enregistré
+        // --------------------------------------------------------------------
+        [Fact]
+        public void Authentication_Is_Registered()
+        {
+            using var scope = _factory.Services.CreateScope();
+            var authService = scope.ServiceProvider.GetService<IAuthenticationService>();
 
-        Assert.NotNull(usersServiceDescriptor);
-        Assert.Equal(ServiceLifetime.Scoped, usersServiceDescriptor.Lifetime);
-    }
+            Assert.NotNull(authService);
+        }
 
-    [Fact]
-    public void LoadClientServerServices_CanResolveIUsersService()
-    {
-        // Arrange
-        var services = new ServiceCollection();
+        // --------------------------------------------------------------------
+        // 3. OpenID Connect est bien configuré
+        // --------------------------------------------------------------------
+        [Fact]
+        public void OpenIdConnect_Is_Configured()
+        {
+            using var scope = _factory.Services.CreateScope();
+            var schemeProvider = scope.ServiceProvider.GetRequiredService<IAuthenticationSchemeProvider>();
 
-        // Ajoutez les dépendances nécessaires pour UsersService
-        services.AddHttpClient(); // HttpClient nécessaire pour UsersService
-        services.AddLogging();    // Si vos services utilisent ILogger
+            var scheme = schemeProvider.GetSchemeAsync(OpenIdConnectDefaults.AuthenticationScheme).Result;
 
-        // Act
-        services.LoadClientServerServices();
-        var serviceProvider = services.BuildServiceProvider();
+            Assert.NotNull(scheme);
+            Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, scheme.Name);
+        }
 
-        // Assert - Vérifiez que IUsersService peut être résolu
-        var usersService = serviceProvider.GetService<IUsersService>();
-        Assert.NotNull(usersService);
-    }
+        // --------------------------------------------------------------------
+        // 4. Cookie d’authentification personnalisé
+        // --------------------------------------------------------------------
+        [Fact]
+        public void Cookie_Authentication_Is_Configured()
+        {
+            using var scope = _factory.Services.CreateScope();
+            var options = scope.ServiceProvider
+                .GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationOptions>>()
+                .Get(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+            Assert.Equal(".TravelBook.Auth", options.Cookie.Name);
+            Assert.Equal(Microsoft.AspNetCore.Http.SameSiteMode.None, options.Cookie.SameSite);
+        }
 
-    [Fact]
-    public void LoadClientServerServices_DoesNotThrowException()
-    {
-        // Arrange
-        var services = new ServiceCollection();
+        // --------------------------------------------------------------------
+        // 5. DataProtection est bien configuré
+        // --------------------------------------------------------------------
+        [Fact]
+        public void DataProtection_Is_Configured()
+        {
+            using var scope = _factory.Services.CreateScope();
+            var provider = scope.ServiceProvider.GetService<Microsoft.AspNetCore.DataProtection.IDataProtectionProvider>();
 
-        // Act & Assert - Vérifie que l'enregistrement ne lance pas d'exception
-        var exception = Record.Exception(() => services.LoadClientServerServices());
-        Assert.Null(exception);
-    }
+            Assert.NotNull(provider);
+        }
 
-    [Fact]
-    public void LoadClientServerServices_HandlesNullServiceCollection()
-    {
-        // Arrange
-        IServiceCollection? services = null;
+        // --------------------------------------------------------------------
+        // 6. Une route inexistante retourne bien une page NotFound
+        // --------------------------------------------------------------------
+        [Fact]
+        public async Task Unknown_Route_Returns_NotFound()
+        {
+            var client = _factory.CreateClient();
 
-        // Act & Assert - Vérifie que la méthode gère null gracieusement
-        var exception = Record.Exception(() => services!.LoadClientServerServices());
-        Assert.Null(exception); // Ne devrait pas lancer d'exception grâce à services?
+            var response = await client.GetAsync("/route-inexistante-123");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public void LoadClientServerServices_RegistersIUsersService()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act
+            services.LoadClientServerServices();
+
+            // Assert
+            var usersServiceDescriptor = services.FirstOrDefault(s =>
+                s.ServiceType == typeof(IUsersService));
+
+            Assert.NotNull(usersServiceDescriptor);
+            Assert.Equal(typeof(UsersService), usersServiceDescriptor.ImplementationType);
+        }
+
+        [Fact]
+        public void LoadClientServerServices_RegistersUsersServiceWithScopedLifetime()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act
+            services.LoadClientServerServices();
+
+            // Assert
+            var usersServiceDescriptor = services.FirstOrDefault(s =>
+                s.ServiceType == typeof(IUsersService));
+
+            Assert.NotNull(usersServiceDescriptor);
+            Assert.Equal(ServiceLifetime.Scoped, usersServiceDescriptor.Lifetime);
+        }
+
+        [Fact]
+        public void LoadClientServerServices_CanResolveIUsersService()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Ajoutez les dépendances nécessaires pour UsersService
+            services.AddHttpClient(); // HttpClient nécessaire pour UsersService
+            services.AddLogging();    // Si vos services utilisent ILogger
+
+            // Act
+            services.LoadClientServerServices();
+            var serviceProvider = services.BuildServiceProvider();
+
+            // Assert - Vérifiez que IUsersService peut être résolu
+            var usersService = serviceProvider.GetService<IUsersService>();
+            Assert.NotNull(usersService);
+        }
+
+        [Fact]
+        public void LoadClientServerServices_DoesNotThrowException()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act & Assert - Vérifie que l'enregistrement ne lance pas d'exception
+            var exception = Record.Exception(() => services.LoadClientServerServices());
+            Assert.Null(exception);
+        }
+
+        [Fact]
+        public void LoadClientServerServices_HandlesNullServiceCollection()
+        {
+            // Arrange
+            IServiceCollection? services = null;
+
+            // Act & Assert - Vérifie que la méthode gère null gracieusement
+            var exception = Record.Exception(() => services!.LoadClientServerServices());
+            Assert.Null(exception); // Ne devrait pas lancer d'exception grâce à services?
+        }
     }
 }
