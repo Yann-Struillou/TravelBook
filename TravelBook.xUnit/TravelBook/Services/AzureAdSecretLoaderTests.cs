@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Moq;
 using TravelBook.Services;
 
 namespace TravelBook.xUnit.TravelBook.Services

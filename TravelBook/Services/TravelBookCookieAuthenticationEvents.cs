@@ -4,7 +4,7 @@ using Microsoft.Identity.Web;
 
 namespace TravelBook.Services
 {
-    internal class TravelBookCookieAuthenticationEvents : CookieAuthenticationEvents
+    public class TravelBookCookieAuthenticationEvents : CookieAuthenticationEvents
     {
         public async override Task ValidatePrincipal(CookieValidatePrincipalContext context)
         {
@@ -13,7 +13,11 @@ namespace TravelBook.Services
                 var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService<ITokenAcquisition>();
                 await tokenAcquisition.GetAccessTokenForUserAsync(
                     scopes: ["profile"],
-                    user: context.Principal);
+                    null,
+                    null,
+                    null,
+                    user: context.Principal,
+                    null);
             }
             catch (MicrosoftIdentityWebChallengeUserException ex)
             when (AccountDoesNotExistInTokenCache(ex))
