@@ -2,49 +2,41 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Graph.Users;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Moq;
+using System.Net;
 using TravelBook.Controllers;
+using TravelBook.Services;
 using TravelBookDto.Users;
 
 namespace TravelBook.xUnit.TravelBook.Controllers
 {
     public class UsersControllerTests
     {
-        private readonly Mock<IRequestAdapter> _mockRequestAdapter;
-        private readonly GraphServiceClient _graphServiceClient;
-        private readonly Mock<IConfiguration> _mockConfiguration;
+        private readonly Mock<IGraphUserService> _graphUserService;
         private readonly UsersController _controller;
         private const string TestDomain = "testdomain.com";
 
-        private static (UsersController controller, Mock<IRequestAdapter> mockAdapter) CreateController
+        private static (UsersController controller, Mock<IGraphUserService> graphUserService) CreateController
         {
             get
             {
-                var mockRequestAdapter = new Mock<IRequestAdapter>();
-                var graphServiceClient = new GraphServiceClient(mockRequestAdapter.Object);
-                var mockConfiguration = new Mock<IConfiguration>();
-                mockConfiguration.Setup(c => c["AzureAd:Domain"]).Returns(TestDomain);
+                var newGraphUserService = new Mock<IGraphUserService>();
+                var newMockConfiguration = new Mock<IConfiguration>();
 
-                var controller = new UsersController(graphServiceClient, mockConfiguration.Object);
-                return (controller, mockRequestAdapter);
+                newMockConfiguration.Setup(c => c["AzureAd:Domain"]).Returns(TestDomain);
+
+                var controller = new UsersController(newGraphUserService.Object, newMockConfiguration.Object);
+                
+                return (controller, newGraphUserService);
             }
         }
 
-        public UsersControllerTests()
-        {
+        public UsersControllerTests() =>
             // Créer un mock du RequestAdapter au lieu du GraphServiceClient directement
-            _mockRequestAdapter = new Mock<IRequestAdapter>();
-            _graphServiceClient = new GraphServiceClient(_mockRequestAdapter.Object);
-
-            _mockConfiguration = new Mock<IConfiguration>();
-
-            // Configuration du domaine par défaut
-            _mockConfiguration.Setup(c => c["AzureAd:Domain"]).Returns(TestDomain);
-
-            _controller = new UsersController(_graphServiceClient, _mockConfiguration.Object);
-        }
+            (_controller, _graphUserService) = CreateController;
 
         #region Constructor Tests
 
@@ -57,7 +49,7 @@ namespace TravelBook.xUnit.TravelBook.Controllers
 
             // Act & Assert
             Assert.Throws<ArgumentException>(() =>
-                new UsersController(_graphServiceClient, mockConfig.Object));
+                new UsersController(_graphUserService.Object, mockConfig.Object));
         }
 
         [Fact]
@@ -69,7 +61,7 @@ namespace TravelBook.xUnit.TravelBook.Controllers
 
             // Act & Assert
             Assert.Throws<ArgumentException>(() =>
-                new UsersController(_graphServiceClient, mockConfig.Object));
+                new UsersController(_graphUserService.Object, mockConfig.Object));
         }
 
         #endregion
@@ -94,12 +86,8 @@ namespace TravelBook.xUnit.TravelBook.Controllers
                 Value = [expectedUser]
             };
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<UserCollectionResponse>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
+            _graphUserService
+                .Setup(x => x.GetUsersAsync(It.IsAny<Action<RequestConfiguration<UsersRequestBuilder.UsersRequestBuilderGetQueryParameters>>>()))
                 .ReturnsAsync(userCollectionResponse);
 
             var dto = new GetUserByIdDto(userId);
@@ -126,14 +114,6 @@ namespace TravelBook.xUnit.TravelBook.Controllers
                 Value = []
             };
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<UserCollectionResponse>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(userCollectionResponse);
-
             var dto = new GetUserByIdDto(Guid.NewGuid().ToString());
 
             // Act & Assert
@@ -143,15 +123,6 @@ namespace TravelBook.xUnit.TravelBook.Controllers
         [Fact]
         public async Task GetUserById_Should_Throw_When_ServiceException_Occurs()
         {
-            // Arrange
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<UserCollectionResponse>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new ServiceException("Graph API Error"));
-
             var dto = new GetUserByIdDto(Guid.NewGuid().ToString());
 
             // Act & Assert
@@ -181,12 +152,8 @@ namespace TravelBook.xUnit.TravelBook.Controllers
                 Value = [expectedUser]
             };
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<UserCollectionResponse>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
+            _graphUserService
+                .Setup(x => x.GetUsersAsync(It.IsAny<Action<RequestConfiguration<UsersRequestBuilder.UsersRequestBuilderGetQueryParameters>>>()))
                 .ReturnsAsync(userCollectionResponse);
 
             var dto = new GetUserByPrincipalNameDto(principalName);
@@ -210,14 +177,6 @@ namespace TravelBook.xUnit.TravelBook.Controllers
                 Value = []
             };
 
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<UserCollectionResponse>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(userCollectionResponse);
-
             var dto = new GetUserByPrincipalNameDto("notfound@testdomain.com");
 
             // Act & Assert
@@ -227,15 +186,6 @@ namespace TravelBook.xUnit.TravelBook.Controllers
         [Fact]
         public async Task GetUserByPrincipalName_Should_Throw_When_ServiceException_Occurs()
         {
-            // Arrange
-            _mockRequestAdapter
-                .Setup(x => x.SendAsync(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<UserCollectionResponse>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new ServiceException("Graph API Error"));
-
             var dto = new GetUserByPrincipalNameDto("test@testdomain.com");
 
             // Act & Assert
@@ -275,73 +225,112 @@ namespace TravelBook.xUnit.TravelBook.Controllers
             Assert.Equal("DisplayName et MailNickName are mandatory.", badRequestResult.Value);
         }
 
-        //[Fact]
-        //public async Task CreateUser_Should_Return_500_When_Creation_Returns_Null()
-        //{
-        //    // Arrange
-        //    var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
+        [Fact]
+        public async Task CreateUser_Builds_UserPrincipalName_Correctly()
+        {
+            // Arrange
+            var graphMock = new Mock<IGraphUserService>();
 
-        //    _mockRequestAdapter
-        //        .Setup(x => x.SendAsync(
-        //            It.IsAny<RequestInformation>(),
-        //            It.IsAny<ParsableFactory<User>>(),
-        //            It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-        //            It.IsAny<CancellationToken>()))
-        //        .ReturnsAsync(value: null);
+            graphMock
+                .Setup(g => g.CreateUserAsync(It.IsAny<User>()))
+                .ReturnsAsync((User u) => u);
 
-        //    // Act
-        //    var result = await _controller.CreateUser(createDto);
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["AzureAd:Domain"] = "contoso.com"
+                })
+                .Build();
 
-        //    // Assert
-        //    var statusCodeResult = Assert.IsType<ObjectResult>(result);
-        //    Assert.Equal(500, statusCodeResult.StatusCode);
-        //}
+            var controller = new UsersController(graphMock.Object, config);
 
-        //[Fact]
-        //public async Task CreateUser_Should_Return_Error_When_ServiceException_Occurs()
-        //{
-        //    // Arrange
-        //    var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
+            var dto = new CreateUserDto
+            (
+                UserPrincipalName : "jdoe@contoso.com",
+                DisplayName : "John Doe",
+                MailNickName : "jdoe"
+            );
 
-        //    var serviceException = new ServiceException("Conflict", null, 409);
+            // Act
+            var result = await controller.CreateUser(dto);
 
-        //    _mockRequestAdapter
-        //        .Setup(x => x.SendAsync(
-        //            It.IsAny<RequestInformation>(),
-        //            It.IsAny<ParsableFactory<User>>(),
-        //            It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-        //            It.IsAny<CancellationToken>()))
-        //        .ThrowsAsync(serviceException);
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<CreateUserResponseDto>(ok.Value);
 
-        //    // Act
-        //    var result = await _controller.CreateUser(createDto);
+            Assert.Equal("jdoe@contoso.com", response.UserPrincipalName);
 
-        //    // Assert
-        //    var statusCodeResult = Assert.IsType<ObjectResult>(result);
-        //    Assert.NotEqual(200, statusCodeResult.StatusCode);
-        //}
+            graphMock.Verify(g =>
+                g.CreateUserAsync(It.Is<User>(u =>
+                    u.UserPrincipalName == "jdoe@contoso.com" &&
+                    u.DisplayName == "John Doe" &&
+                    u.MailNickname == "jdoe" &&
+                    u.AccountEnabled == true
+                )),
+                Times.Once);
+        }
 
-        //[Fact]
-        //public async Task CreateUser_Should_Return_500_When_Generic_Exception_Occurs()
-        //{
-        //    // Arrange
-        //    var createDto = new CreateUserDto("newuser@testdomain.com", "New User", "newuser");
+        [Fact]
+        public async Task CreateUser_Returns_500_When_User_Is_Null()
+        {
+            var graphMock = new Mock<IGraphUserService>();
+            graphMock.Setup(g => g.CreateUserAsync(It.IsAny<User>()))
+                     .ReturnsAsync((User?)null);
 
-        //    _mockRequestAdapter
-        //        .Setup(x => x.SendAsync(
-        //            It.IsAny<RequestInformation>(),
-        //            It.IsAny<ParsableFactory<User>>(),
-        //            It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-        //            It.IsAny<CancellationToken>()))
-        //        .ThrowsAsync(new Exception("Unexpected error"));
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["AzureAd:Domain"] = "contoso.com"
+                })
+                .Build();
 
-        //    // Act
-        //    var result = await _controller.CreateUser(createDto);
+            var controller = new UsersController(graphMock.Object, config);
 
-        //    // Assert
-        //    var statusCodeResult = Assert.IsType<ObjectResult>(result);
-        //    Assert.Equal(500, statusCodeResult.StatusCode);
-        //}
+            var dto = new CreateUserDto
+            (
+                UserPrincipalName : "john@contoso.com",
+                DisplayName : "John",
+                MailNickName : "john"
+            );
+
+            var result = await controller.CreateUser(dto);
+
+            var status = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, status.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateUser_Returns_Graph_StatusCode_On_ServiceException()
+        {
+            var graphMock = new Mock<IGraphUserService>();
+
+            graphMock.Setup(g => g.CreateUserAsync(It.IsAny<User>()))
+                .ThrowsAsync(new ServiceException(
+                    "Graph error",
+                    null,
+                    (int)HttpStatusCode.Forbidden));
+
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["AzureAd:Domain"] = "contoso.com"
+                })
+                .Build();
+
+            var controller = new UsersController(graphMock.Object, config);
+
+            var dto = new CreateUserDto
+            (
+                UserPrincipalName: "john@contoso.com",
+                DisplayName: "John",
+                MailNickName: "john"
+            );
+
+            var result = await controller.CreateUser(dto);
+
+            var status = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(403, status.StatusCode);
+        }
 
         #endregion
     }

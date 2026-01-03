@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Identity.Web;
+using TravelBook.Services;
 using TravelBookDto.Users;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -16,12 +17,12 @@ namespace TravelBook.Controllers
     [AuthorizeForScopes(Scopes = new string[] { "user.read", "user.readwrite.all", "device.read.all" })]
     public class UsersController : ControllerBase
     {
-        private readonly GraphServiceClient _graphServiceClient;
+        private readonly IGraphUserService _graphUserService;
         private readonly string _defaultDomain;
 
-        public UsersController(GraphServiceClient graphServiceClient, IConfiguration configuration)
+        public UsersController(IGraphUserService graphUserService, IConfiguration configuration)
         {
-            _graphServiceClient = graphServiceClient;
+            _graphUserService = graphUserService;
 
             // Récupération du domaine depuis appsettings.json
             _defaultDomain = configuration["AzureAd:Domain"] ?? "";
@@ -36,7 +37,7 @@ namespace TravelBook.Controllers
         {
             try
             {
-                var users = await _graphServiceClient.Users.GetAsync((requestConfiguration) =>
+                var users = await _graphUserService.GetUsersAsync((requestConfiguration) =>
                 {
                     requestConfiguration.Options.WithAuthenticationScheme(OpenIdConnectDefaults.AuthenticationScheme);
                     requestConfiguration.QueryParameters.Select = ["id", "principal", "displayName", "mailnickname"];
@@ -69,7 +70,7 @@ namespace TravelBook.Controllers
         {
             try
             {
-                var users = await _graphServiceClient.Users.GetAsync((requestConfiguration) =>
+                var users = await _graphUserService.GetUsersAsync((requestConfiguration) =>
                 {
                     requestConfiguration.Options.WithAuthenticationScheme(OpenIdConnectDefaults.AuthenticationScheme);
                     requestConfiguration.QueryParameters.Select = ["id", "principal", "displayName", "mailnickname"];
@@ -125,7 +126,7 @@ namespace TravelBook.Controllers
 
             try
             {
-                var createdUser = await _graphServiceClient.Users.PostAsync(newUser);
+                var createdUser = await _graphUserService.CreateUserAsync(newUser);
 
                 if (createdUser == null)
                     return StatusCode(500, "The user registration failed.");

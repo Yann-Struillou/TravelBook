@@ -88,6 +88,7 @@ builder.Services.LoadClientServerServices();
 
 builder.Services.AddSingleton<ISecretClientFactory, SecretClientFactory>();
 builder.Services.AddTransient<IAzureAdSecretLoader, AzureAdSecretLoader>();
+builder.Services.AddTransient<IGraphUserService, GraphUserService>();
 
 // Pipeline
 var app = builder.Build();
