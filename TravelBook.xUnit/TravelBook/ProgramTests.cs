@@ -17,7 +17,7 @@ namespace TravelBook.xUnit.TravelBook
         /// </summary>
         /// <param name="configurationManager"></param>
         /// <returns></returns>
-        public async Task LoadAsync(IConfigurationManager configurationManager)
+        public async Task LoadAsync(IConfigurationManager configurationManager, IKeyVaultSecretReader keyVaultSecretReader)
         {
             ArgumentNullException.ThrowIfNull(configurationManager);
             configurationManager["AzureAd:ClientSecret"] = "fake-secret";

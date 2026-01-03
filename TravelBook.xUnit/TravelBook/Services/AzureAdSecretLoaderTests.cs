@@ -1,7 +1,4 @@
-﻿using Azure;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Moq;
 using TravelBook.Services;
 
@@ -22,7 +19,7 @@ namespace TravelBook.xUnit.TravelBook.Services
             _secretValue = secretValue;
         }
 
-        public Task LoadAsync(IConfigurationManager configurationManager)
+        public Task LoadAsync(IConfigurationManager configurationManager, IKeyVaultSecretReader keyVaultSecretReader)
         {
             if (string.IsNullOrEmpty(_secretName))
                 return Task.CompletedTask;
@@ -45,7 +42,7 @@ namespace TravelBook.xUnit.TravelBook.Services
             _secretValue = secretValue;
         }
 
-        public async Task LoadAsync(IConfigurationManager configurationManager)
+        public async Task LoadAsync(IConfigurationManager configurationManager, IKeyVaultSecretReader keyVaultSecretReader)
         {
             ArgumentNullException.ThrowIfNull(configurationManager);
 
@@ -77,8 +74,11 @@ namespace TravelBook.xUnit.TravelBook.Services
 
     public class AzureAdSecretLoaderTests
     {
-        private static IConfigurationManager CreateConfiguration(
-            Dictionary<string, string?> values)
+        private IKeyVaultSecretReader KeyVaultSecretReader => new FakeAzureKeyVaultSecretReader(Configuration["KeyVault:AzureAdClientSecret"]);
+
+        private IConfigurationManager Configuration { get; set; } = null!;
+
+        private static IConfigurationManager CreateConfiguration(Dictionary<string, string?> values)
         {
             var configuration = new ConfigurationManager();
 
@@ -91,25 +91,62 @@ namespace TravelBook.xUnit.TravelBook.Services
         }
 
         [Fact]
+        public async Task LoadAsync_SetsSecret_When_KeyVaultUri_AndScretName_AreAvailable()
+        {
+            // Arrange
+            Configuration = CreateConfiguration(new()
+            {
+                ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/",
+                ["KeyVault:AzureAdClientSecret"] = "my-secret"
+            });
+
+            var loader = new AzureAdSecretLoader();
+            
+            // Act
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
+
+            // Assert
+            Assert.Equal("my-secret", Configuration["AzureAd:ClientSecret"]);
+        }
+
+        [Fact]
         public async Task LoadAsync_Returns_When_KeyVaultUri_IsMissing()
         {
             // Arrange
-            var configuration = CreateConfiguration([]);
+            Configuration = CreateConfiguration([]);
 
             var loader = new AzureAdSecretLoader();
 
             // Act
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
             // Assert
-            Assert.Null(configuration["AzureAd:ClientSecret"]);
+            Assert.Null(Configuration["AzureAd:ClientSecret"]);
+        }
+
+        [Fact]
+        public async Task LoadAsync_Returns_When_KeyVaultUri_IsEmpty()
+        {
+            // Arrange
+            Configuration = CreateConfiguration(new()
+            {
+                ["KeyVault:VaultUri"] = ""
+            });
+
+            var loader = new AzureAdSecretLoader();
+
+            // Act
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
+
+            // Assert
+            Assert.Null(Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Returns_When_ClientSecretName_IsMissing()
         {
             // Arrange
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/"
             });
@@ -117,36 +154,36 @@ namespace TravelBook.xUnit.TravelBook.Services
             var loader = new AzureAdSecretLoader();
 
             // Act
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
             // Assert
-            Assert.Null(configuration["AzureAd:ClientSecret"]);
+            Assert.Null(Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Sets_ClientSecret_When_Secret_Is_Found()
         {
             // Arrange
-            var configuration = new ConfigurationManager();
-            configuration["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/";
-            configuration["KeyVault:AzureAdClientSecret"] = "my-secret";
-            configuration["AzureAd:ClientSecret"] = "";
+            Configuration = new ConfigurationManager();
+            Configuration["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/";
+            Configuration["KeyVault:AzureAdClientSecret"] = "my-secret";
+            Configuration["AzureAd:ClientSecret"] = "";
 
             // Utilisation du FakeAzureAdSecretLoader
-            var loader = new FakeAzureAdSecretLoaderWithSecret(configuration["KeyVault:AzureAdClientSecret"], "super-secret");
+            var loader = new FakeAzureAdSecretLoaderWithSecret(Configuration["KeyVault:AzureAdClientSecret"], "super-secret");
 
             // Act
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
             // Assert
-            Assert.Equal("super-secret", configuration["AzureAd:ClientSecret"]);
+            Assert.Equal("super-secret", Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Throws_When_Secret_Value_Is_Null()
         {
             // Arrange
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/",
                 ["KeyVault:AzureAdClientSecret"] = "my-secret",
@@ -154,33 +191,33 @@ namespace TravelBook.xUnit.TravelBook.Services
             });
 
             // Utilisation du FakeAzureAdSecretLoader
-            var loader = new FakeAzureAdSecretLoaderWithSecret(configuration["KeyVault:AzureAdClientSecret"], null);
+            var loader = new FakeAzureAdSecretLoaderWithSecret(Configuration["KeyVault:AzureAdClientSecret"], null);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => loader.LoadAsync(configuration));
+                () => loader.LoadAsync(Configuration, KeyVaultSecretReader));
         }
 
         [Fact]
         public async Task LoadAsync_Returns_When_ClientSecretName_Is_Null()
         {
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/"
                 // PAS de KeyVault:AzureAdClientSecret
             });
 
-            var loader = new FakeAzureAdSecretLoaderWithSecret(configuration["KeyVault:AzureAdClientSecret"], null);
+            var loader = new FakeAzureAdSecretLoaderWithSecret(Configuration["KeyVault:AzureAdClientSecret"], null);
 
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
-            Assert.Null(configuration["AzureAd:ClientSecret"]);
+            Assert.Null(Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Returns_When_ClientSecretName_Is_Empty()
         {
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake-vault.vault.azure.net/",
                 ["KeyVault:AzureAdClientSecret"] = ""
@@ -188,16 +225,16 @@ namespace TravelBook.xUnit.TravelBook.Services
 
             var loader = new FakeAzureAdSecretLoaderWithSecret("", null);
 
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
-            Assert.Null(configuration["AzureAd:ClientSecret"]);
+            Assert.Null(Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Returns_When_ClientSecretName_Is_Null_SecretMocked()
         {
             // Arrange
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake.vault/"
                 // AzureAdClientSecret absent
@@ -206,17 +243,17 @@ namespace TravelBook.xUnit.TravelBook.Services
             var loader = new FakeAzureAdSecretLoaderWithSecretMocked("super-secret");
 
             // Act
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
             // Assert
-            Assert.Null(configuration["AzureAd:ClientSecret"]);
+            Assert.Null(Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Sets_ClientSecret_When_Secret_Found_SecretMocked()
         {
             // Arrange
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake.vault/",
                 ["KeyVault:AzureAdClientSecret"] = "my-secret"
@@ -225,17 +262,17 @@ namespace TravelBook.xUnit.TravelBook.Services
             var loader = new FakeAzureAdSecretLoaderWithSecretMocked("super-secret");
 
             // Act
-            await loader.LoadAsync(configuration);
+            await loader.LoadAsync(Configuration, KeyVaultSecretReader);
 
             // Assert
-            Assert.Equal("super-secret", configuration["AzureAd:ClientSecret"]);
+            Assert.Equal("super-secret", Configuration["AzureAd:ClientSecret"]);
         }
 
         [Fact]
         public async Task LoadAsync_Throws_When_Secret_Value_Is_Null_SecretMocked()
         {
             // Arrange
-            var configuration = CreateConfiguration(new()
+            Configuration = CreateConfiguration(new()
             {
                 ["KeyVault:VaultUri"] = "https://fake.vault/",
                 ["KeyVault:AzureAdClientSecret"] = "my-secret"
@@ -245,7 +282,7 @@ namespace TravelBook.xUnit.TravelBook.Services
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => loader.LoadAsync(configuration));
+                () => loader.LoadAsync(Configuration, KeyVaultSecretReader));
         }
 
     }

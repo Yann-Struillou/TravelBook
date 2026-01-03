@@ -4,7 +4,7 @@ namespace TravelBook.Services
 {
     public class AzureAdSecretLoader() : IAzureAdSecretLoader
     {
-        public async Task LoadAsync(IConfigurationManager configurationManager)
+        public async Task LoadAsync(IConfigurationManager configurationManager, IKeyVaultSecretReader keyVaultSecretReader)
         {
             ArgumentNullException.ThrowIfNull(configurationManager);
 
@@ -15,7 +15,7 @@ namespace TravelBook.Services
                 return;
 
             configurationManager["AzureAd:ClientSecret"] 
-                = await new AzureKeyVaultSecretReader().ReadSecretAsync(vaultUri, secretName) ?? throw new InvalidOperationException();
+                = await keyVaultSecretReader.ReadSecretAsync(vaultUri, secretName) ?? throw new InvalidOperationException();
         }
     }
 }

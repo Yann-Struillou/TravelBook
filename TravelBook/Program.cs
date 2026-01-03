@@ -34,7 +34,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
     CookieAuthenticationDefaults.AuthenticationScheme,
     options => {
         options.Cookie.Name = ".TravelBook.Auth";        // custom name
-        options.Cookie.SameSite = SameSiteMode.None;      // better for OIDC
+        options.Cookie.SameSite = SameSiteMode.None;     // better for OIDC
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
@@ -94,7 +94,7 @@ var app = builder.Build();
 
 // Load Azure AD secrets from Key Vault
 if (!builder.Environment.IsEnvironment("Test"))
-    await app.Services.GetRequiredService<IAzureAdSecretLoader>().LoadAsync(builder.Configuration);
+    await app.Services.GetRequiredService<IAzureAdSecretLoader>().LoadAsync(builder.Configuration, new AzureKeyVaultSecretReader());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

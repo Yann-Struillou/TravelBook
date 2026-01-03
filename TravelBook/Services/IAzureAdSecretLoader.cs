@@ -2,6 +2,6 @@
 {
     public interface IAzureAdSecretLoader
     {
-        Task LoadAsync(IConfigurationManager configurationManager);
+        Task LoadAsync(IConfigurationManager configurationManager, IKeyVaultSecretReader keyVaultSecretReader);
     }
 }
