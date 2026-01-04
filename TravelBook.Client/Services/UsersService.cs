@@ -63,7 +63,7 @@ namespace TravelBook.Client.Services
             }
 
             await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-            throw new ArgumentNullException("Could not read from Json" ?? response.ReasonPhrase);
+            throw new ArgumentNullException(response.ReasonPhrase ?? "Could not read from Json");
         }
     }
 }
