@@ -168,11 +168,6 @@ namespace TravelBook.xUnit.TravelBook.Controllers
         public async Task GetUserByPrincipalName_Should_Throw_When_User_Not_Found()
         {
             // Arrange
-            var userCollectionResponse = new UserCollectionResponse
-            {
-                Value = []
-            };
-
             var dto = new GetUserByPrincipalNameDto("notfound@testdomain.com");
 
             // Act & Assert
