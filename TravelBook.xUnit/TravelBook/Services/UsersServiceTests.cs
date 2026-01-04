@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using TravelBook.Client.Services;
 using TravelBookDto.Users;
@@ -272,6 +273,66 @@ namespace TravelBook.xUnit.TravelBook.Services
 
             Assert.NotNull(result);
             Assert.StartsWith($"Application error: {exceptionMessage}", result.Message);
+        }
+
+        [Fact]
+        public async Task CreateUserAsync_Throws_With_Error_From_Response_Content()
+        {
+            // Arrange
+            var handler = new FakeHttpMessageHandler(_ =>
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = JsonContent.Create(new Dictionary<string, string>
+                    {
+                        ["Error"] = "Graph API failure"
+                    })
+                };
+                return response;
+            });
+
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/")
+            };
+
+            var service = new UsersService(httpClient);
+
+            // Act
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                service.CreateUserAsync(new CreateUserDto("user@contoso.com", "John", "john")));
+
+            // Assert
+            Assert.Equal("Graph API failure", exception.ParamName);
+        }
+
+        [Fact]
+        public async Task CreateUserAsync_Throws_With_Response_ReasonPhrase_When_Error_Is_Missing()
+        {
+            // Arrange
+            var handler = new FakeHttpMessageHandler(_ =>
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    ReasonPhrase = "Bad Request",
+                    Content = JsonContent.Create(new Dictionary<string, string>())
+                };
+                return response;
+            });
+
+            var httpClient = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/")
+            };
+
+            var service = new UsersService(httpClient);
+
+            // Act
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                service.CreateUserAsync(new CreateUserDto("user@contoso.com", "John", "john")));
+
+            // Assert
+            Assert.Equal("Could not read from Json", exception.ParamName);
         }
     }
 }

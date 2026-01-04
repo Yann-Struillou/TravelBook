@@ -62,8 +62,8 @@ namespace TravelBook.Client.Services
                 return await response.Content.ReadFromJsonAsync<CreateUserResponseDto>();
             }
 
-            var error = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-            throw new ArgumentNullException(error?["Error"] ?? response.ReasonPhrase);
+            await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+            throw new ArgumentNullException("Could not read from Json" ?? response.ReasonPhrase);
         }
     }
 }
