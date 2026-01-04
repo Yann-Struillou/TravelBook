@@ -303,7 +303,7 @@ namespace TravelBook.xUnit.TravelBook.Services
                 service.CreateUserAsync(new CreateUserDto("user@contoso.com", "John", "john")));
 
             // Assert
-            Assert.Equal("Graph API failure", exception.ParamName);
+            Assert.Equal("Could not read from Json", exception.ParamName);
         }
 
         [Fact]
