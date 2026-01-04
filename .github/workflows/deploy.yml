@@ -1,38 +1,66 @@
-name: Deploy TravelBook
+name: Deploy TravelBook App
 
 on:
   push:
-    branches: [ main ]
+    branches: [ authentication-test ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: travelbook
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Ensure Docker Swarm is initialized
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Stop existing container
         run: |
-          docker info | grep -q "Swarm: active" || docker swarm init
-
-      - name: Build Docker image
-        run: docker build -t travelbook_app:latest -f TravelBook/Dockerfile .
-
-      - name: Ensure Docker secret exists
+          docker-compose down || true
+      
+      - name: Create .env file
         env:
-           TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
+          TRAVELBOOK_APP_CERTIFICATE_SECRET: ${{ secrets.TRAVELBOOK_APP_CERTIFICATE_SECRET }}
+          ENTRA_TENANT_ID: ${{ secrets.ENTRA_TENANT_ID }}
+          ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
+          ENTRA_DOMAIN: ${{ secrets.ENTRA_DOMAIN }}
+          AZURE_SP_CLIENT_ID: ${{ secrets.AZURE_SP_CLIENT_ID }}
+          AZURE_SP_CLIENT_SECRET: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+          AZURE_SP_TENANT_ID: ${{ secrets.AZURE_SP_TENANT_ID }}
+          KEY_VAULT_NAME: ${{ secrets.KEY_VAULT_NAME }}
+          KEY_VAULT_SECRET_NAME: ${{ secrets.KEY_VAULT_SECRET_NAME }}
         run: |
-          if ! docker secret inspect travelbook_pfx_password >/dev/null 2>&1; then
-            echo "$TRAVELBOOK_APP_CERTIFICATE_SECRET" | \
-            docker secret create travelbook_pfx_password -
+          cat > .env << EOF
+          TRAVELBOOK_APP_CERTIFICATE_SECRET=$TRAVELBOOK_APP_CERTIFICATE_SECRET
+          ENTRA_TENANT_ID=$ENTRA_TENANT_ID
+          ENTRA_CLIENT_ID=$ENTRA_CLIENT_ID
+          ENTRA_DOMAIN=$ENTRA_DOMAIN
+          AZURE_SP_CLIENT_ID=$AZURE_SP_CLIENT_ID
+          AZURE_SP_CLIENT_SECRET=$AZURE_SP_CLIENT_SECRET
+          AZURE_SP_TENANT_ID=$AZURE_SP_TENANT_ID
+          KEY_VAULT_NAME=$KEY_VAULT_NAME
+          KEY_VAULT_SECRET_NAME=$KEY_VAULT_SECRET_NAME
+          EOF
+
+      - name: Build and start container
+        run: |
+          docker compose up -d --build
+
+      - name: Wait for container to start
+        run: |
+          sleep 10
+
+      - name: Show logs
+        run: |
+          docker logs travelbook_web --tail 100
+
+      - name: Check container health
+        run: |
+          if ! docker ps | grep -q travelbook_web; then
+            echo "ERROR: Container not running!"
+            docker logs travelbook_web
+            exit 1
           fi
-
-      - name: Deploy stack
-        run: docker stack deploy -c docker-compose.yml travelbook
-
-      - name: Force service update
-        run: docker service update --force travelbook_web
-
-      - name: Cleanup unused images
-        run: docker image prune -f
+      
+      - name: Clean up old images
+        run: |
+          docker image prune -f

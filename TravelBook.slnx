@@ -1,5 +1,13 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/BlazorWebAppEntra.yml" />
+    <File Path=".github/workflows/deploy.yml" />
+    <File Path=".github/workflows/sonarcloud.yml" />
+    <File Path=".runsettings" />
+    <File Path="Dockerfile" />
+  </Folder>
   <Project Path="TravelBook.Client/TravelBook.Client.csproj" />
+  <Project Path="TravelBook.xUnit/TravelBook.xUnit.csproj" Id="5c6a7127-4598-47e7-bc3f-b3f0efda421d" />
   <Project Path="TravelBook/TravelBook.csproj" />
   <Project Path="TravelBookDto/TravelBookDto.csproj" Id="1a533983-268e-4a3a-9d1c-11c57ca65c46" />
 </Solution>

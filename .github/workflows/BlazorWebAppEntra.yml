@@ -33,6 +33,8 @@ jobs:
         run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
 
       - name: Run tests
+        env:
+          DOTNET_ENVIRONMENT: Test
         run: dotnet test "${{ env.WORKING_DIRECTORY }}" --no-build
 
       - name: Publish project
