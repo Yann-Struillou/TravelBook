@@ -257,5 +257,21 @@ namespace TravelBook.xUnit.TravelBook.Services
             Assert.Equal($"Application error: {exceptionMessage}", result.Message);
         }
 
+        [Fact]
+        public async Task GetUserByPrincipalAsync_HasException_When_HttpClient_IsNull()
+        {
+            const string exceptionMessage = "Value cannot be null. ";
+
+            var handler = new FakeHttpMessageHandler(_ =>
+                throw new TaskCanceledException(exceptionMessage));
+
+            var service = new UsersService(null!);
+
+            var result = await service.GetUserByPrincipalAsync(
+                new GetUserByPrincipalNameDto("test@domain.com"));
+
+            Assert.NotNull(result);
+            Assert.StartsWith($"Application error: {exceptionMessage}", result.Message);
+        }
     }
 }
