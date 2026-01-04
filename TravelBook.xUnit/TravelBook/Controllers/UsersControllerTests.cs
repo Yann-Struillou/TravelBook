@@ -109,10 +109,6 @@ namespace TravelBook.xUnit.TravelBook.Controllers
         public async Task GetUserById_Should_Throw_When_User_Not_Found()
         {
             // Arrange
-            var userCollectionResponse = new UserCollectionResponse
-            {
-                Value = []
-            };
 
             var dto = new GetUserByIdDto(Guid.NewGuid().ToString());
 
