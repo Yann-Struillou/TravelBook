@@ -93,12 +93,12 @@ namespace TravelBook.xUnit.TravelBook
         // 3. OpenID Connect est bien configuré
         // --------------------------------------------------------------------
         [Fact]
-        public void OpenIdConnect_Is_Configured()
+        public async Task OpenIdConnect_Is_Configured()
         {
             using var scope = _factory.Services.CreateScope();
             var schemeProvider = scope.ServiceProvider.GetRequiredService<IAuthenticationSchemeProvider>();
 
-            var scheme = schemeProvider.GetSchemeAsync(OpenIdConnectDefaults.AuthenticationScheme).Result;
+            var scheme = await schemeProvider.GetSchemeAsync(OpenIdConnectDefaults.AuthenticationScheme);
 
             Assert.NotNull(scheme);
             Assert.Equal(OpenIdConnectDefaults.AuthenticationScheme, scheme.Name);

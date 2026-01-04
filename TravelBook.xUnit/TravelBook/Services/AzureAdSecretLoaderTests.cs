@@ -73,11 +73,13 @@ namespace TravelBook.xUnit.TravelBook.Services
 
     public class AzureAdSecretLoaderTests
     {
+        private IConfigurationManager configuration = null!;
+
         private IKeyVaultSecretReader KeyVaultSecretReader => new FakeAzureKeyVaultSecretReader(Configuration["KeyVault:AzureAdClientSecret"]);
 
-        private IConfigurationManager Configuration { get; set; } = null!;
+        private IConfigurationManager Configuration { get => configuration; set => configuration = value; }
 
-        private static IConfigurationManager CreateConfiguration(Dictionary<string, string?> values)
+        private static ConfigurationManager CreateConfiguration(Dictionary<string, string?> values)
         {
             var configuration = new ConfigurationManager();
 

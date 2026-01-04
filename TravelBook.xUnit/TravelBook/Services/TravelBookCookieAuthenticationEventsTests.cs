@@ -115,7 +115,7 @@ namespace TravelBook.xUnit.TravelBook.Services
             var challengeException =
                 new MicrosoftIdentityWebChallengeUserException(
                     msalException,
-                    new[] { "profile" });
+                    ["profile"]);
 
             var tokenAcquisitionMock = new Mock<ITokenAcquisition>(MockBehavior.Strict);
 
