@@ -2,9 +2,11 @@
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Users;
 using Microsoft.Kiota.Abstractions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TravelBook.Services
 {
+    [ExcludeFromCodeCoverage]
     public class GraphUserService : IGraphUserService
     {
         private readonly GraphServiceClient _client;
