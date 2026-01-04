@@ -303,7 +303,7 @@ namespace TravelBook.xUnit.TravelBook.Services
                 service.CreateUserAsync(new CreateUserDto("user@contoso.com", "John", "john")));
 
             // Assert
-            Assert.Equal("Could not read from Json", exception.ParamName);
+            Assert.Equal("Bad Request", exception.ParamName);
         }
 
         [Fact]
@@ -332,7 +332,7 @@ namespace TravelBook.xUnit.TravelBook.Services
                 service.CreateUserAsync(new CreateUserDto("user@contoso.com", "John", "john")));
 
             // Assert
-            Assert.Equal("Could not read from Json", exception.ParamName);
+            Assert.Equal("Bad Request", exception.ParamName);
         }
     }
 }
